@@ -1,15 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Job Application Filler",
+  "name": "Dev Job Application Tracking",
   "version": "1.0",
   "description": "Automatically fill job application forms and track applications.",
   "permissions": [
     "activeTab",
     "storage",
-    "declaritiveContent",
     "scripting",
     "webRequest",
-    "webRequestBlocking",
     "http://localhost/*"
   ],
   "content_scripts": [

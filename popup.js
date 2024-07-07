@@ -1,10 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
   const codeEntrySection = document.getElementById('codeEntrySection');
   const actionSection = document.getElementById('actionSection');
+  const logApplicationSection = document.getElementById(
+    'logApplicationSection'
+  );
   const userCodeInput = document.getElementById('userCode');
   const saveCodeButton = document.getElementById('saveCode');
   const fillApplicationButton = document.getElementById('fillApplication');
   const clearCodeButton = document.getElementById('clearCode');
+  const logApplicationButton = document.getElementById('logApplication');
+  const submitApplicationButton = document.getElementById('submitApplication');
+  const companyNameInput = document.getElementById('companyName');
+  const jobNameInput = document.getElementById('jobName');
 
   chrome.storage.sync.get('userCode', (result) => {
     if (result.userCode) {
@@ -55,6 +62,49 @@ document.addEventListener('DOMContentLoaded', () => {
       actionSection.classList.add('hidden');
     });
   });
+
+  logApplicationButton.addEventListener('click', () => {
+    actionSection.classList.add('hidden');
+    logApplicationSection.classList.remove('hidden');
+  });
+
+  submitApplicationButton.addEventListener('click', async () => {
+    const companyName = companyNameInput.value;
+    const jobName = jobNameInput.value;
+
+    if (companyName && jobName) {
+      chrome.storage.sync.get('userCode', (result) => {
+        const userCode = result.userCode;
+        if (userCode) {
+          chrome.tabs.query(
+            { active: true, currentWindow: true },
+            async (tabs) => {
+              const tab = tabs[0];
+              if (tab) {
+                const applicationURL = tab.url;
+                const source = new URL(applicationURL).hostname;
+                const payload = {
+                  companyName,
+                  jobName,
+                  applicationURL,
+                  source,
+                  userCode,
+                };
+                await logJobApplication(payload);
+                alert('Job application logged successfully!');
+                logApplicationSection.classList.add('hidden');
+                actionSection.classList.remove('hidden');
+              }
+            }
+          );
+        } else {
+          alert('User code not found. Please enter your code again.');
+        }
+      });
+    } else {
+      alert('Please fill in all fields.');
+    }
+  });
 });
 
 async function fetchPersonalInformation(userCode) {
@@ -73,6 +123,24 @@ async function fetchPersonalInformation(userCode) {
     }
   } catch (error) {
     console.error('Error fetching personal information:', error);
+  }
+}
+
+async function logJobApplication(payload) {
+  const url = 'http://localhost:3000/api/plugin/logApplication';
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      console.error('Failed to log job application:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error logging job application:', error);
   }
 }
 
