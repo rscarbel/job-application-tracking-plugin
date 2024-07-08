@@ -82,12 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
               const tab = tabs[0];
               if (tab) {
                 const applicationURL = tab.url;
-                const source = new URL(applicationURL).hostname;
                 const payload = {
                   companyName,
                   jobName,
                   applicationURL,
-                  source,
                   userCode,
                 };
                 await logJobApplication(payload);
@@ -108,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function fetchPersonalInformation(userCode) {
-  const url = `http://localhost:3000/api/plugin/getPersonalInformation?userCode=${userCode}`;
+  const url = `https://job-application-tracking-dev.vercel.app/api/plugin/getPersonalInformation?userCode=${userCode}`;
   try {
     const response = await fetch(url);
     if (response.ok) {
@@ -127,7 +125,8 @@ async function fetchPersonalInformation(userCode) {
 }
 
 async function logJobApplication(payload) {
-  const url = 'http://localhost:3000/api/plugin/logApplication';
+  const url =
+    'https://job-application-tracking-dev.vercel.app/api/plugin/logApplication';
   try {
     const response = await fetch(url, {
       method: 'POST',

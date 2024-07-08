@@ -8,7 +8,7 @@
     "storage",
     "scripting",
     "webRequest",
-    "http://localhost/*"
+    "https://job-application-tracking-dev.vercel.app/*"
   ],
   "content_scripts": [
     {
