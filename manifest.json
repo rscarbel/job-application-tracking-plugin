@@ -3,13 +3,7 @@
   "name": "Dev Job Application Tracking",
   "version": "1.0",
   "description": "Automatically fill job application forms and track applications.",
-  "permissions": [
-    "activeTab",
-    "storage",
-    "scripting",
-    "webRequest",
-    "https://job-application-tracking-dev.vercel.app/*"
-  ],
+  "permissions": ["activeTab", "storage", "scripting", "webRequest"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
