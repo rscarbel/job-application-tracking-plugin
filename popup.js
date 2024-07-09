@@ -339,7 +339,7 @@ function fillJobApplicationForm() {
       };
 
       fieldsToSearch.forEach((key) => {
-        fillInput(fieldNames[key], value);
+        fillInput(fieldNames[key], fieldValues[key]);
       });
 
       allInputs.forEach((input) => {
