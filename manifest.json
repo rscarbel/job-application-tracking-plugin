@@ -3,7 +3,7 @@
   "name": "Dev Job Application Tracking",
   "version": "1.0",
   "description": "Automatically fill job application forms and track applications.",
-  "permissions": ["activeTab", "storage", "scripting", "webRequest"],
+  "permissions": ["activeTab", "storage", "scripting"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
