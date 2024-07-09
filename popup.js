@@ -175,6 +175,7 @@ function fillJobApplicationForm() {
       const allInputs = document.querySelectorAll('input');
 
       const fieldNames = {
+        name: ['name', 'full name', 'full name:', 'full_name', 'complete name'],
         firstName: ['first name', 'firstname', 'first_name', 'given name'],
         lastName: [
           'last name',
@@ -183,7 +184,6 @@ function fillJobApplicationForm() {
           'surname',
           'family name',
         ],
-        name: ['name', 'full name', 'full name:', 'full_name', 'complete name'],
         email: [
           'email',
           'e-mail',
@@ -221,6 +221,27 @@ function fillJobApplicationForm() {
           'desired salary',
         ],
       };
+
+      const fieldsToSearch = [
+        'name',
+        'firstName',
+        'lastName',
+        'email',
+        'phone',
+        'address',
+        'city',
+        'state',
+        'zip',
+        'country',
+        'linkedin',
+        'authorizedToWork',
+        'requireSponsorship',
+        'hasBachelorDegree',
+        'currentCompany',
+        'currentTitle',
+        'currentLocation',
+        'expectedSalary',
+      ];
 
       const fillInputByLabel = (labelText, value) => {
         try {
@@ -317,9 +338,9 @@ function fillJobApplicationForm() {
         fillInputById(labelTextArray, value);
       };
 
-      for (const [key, value] of Object.entries(fieldValues)) {
+      fieldsToSearch.forEach((key) => {
         fillInput(fieldNames[key], value);
-      }
+      });
 
       allInputs.forEach((input) => {
         try {
