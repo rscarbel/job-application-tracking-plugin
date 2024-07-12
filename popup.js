@@ -176,18 +176,15 @@ function fillJobApplicationForm() {
         zip: personalInfo.postalCode || '',
       };
 
-      const allDivs = document.querySelectorAll('div');
       const allLabels = document.querySelectorAll('label');
-      const allInputs = document.querySelectorAll('input, textarea, select');
+      const allInputs = document.querySelectorAll('input, select');
 
       const fieldNames = {
         addressLine1: [
           'address line 1',
           'address1',
           'street address 1',
-          'address',
           'street address',
-          'street',
           'address line',
           'addr line 1',
           'addr1',
@@ -266,7 +263,6 @@ function fillJobApplicationForm() {
           'nation',
           'country name',
           'nation name',
-          'state',
           'country of residence',
           'residence country',
           'country of origin',
@@ -281,7 +277,6 @@ function fillJobApplicationForm() {
           'region',
           'subdivision',
           'administrative region',
-          'county name',
           'borough',
           'county/region',
           'county/district',
@@ -436,6 +431,7 @@ function fillJobApplicationForm() {
           'secondary name',
         ],
         name: [
+          'name',
           'full name',
           'full name:',
           'full_name',
@@ -545,6 +541,7 @@ function fillJobApplicationForm() {
         'email',
         'phone',
         'phoneCountryCode',
+        'currentLocation',
         'addressLine1',
         'addressLine2',
         'addressLine3',
@@ -559,16 +556,14 @@ function fillJobApplicationForm() {
         'hasBachelorDegree',
         'currentCompany',
         'currentTitle',
-        'currentLocation',
         'expectedSalary',
       ];
-
       const fillInputByLabel = (labelText, value) => {
         try {
           allLabels.forEach((label) => {
             const formText = label.textContent.trim().toLowerCase();
             labelText.forEach((text) => {
-              if (formText.includes(text.toLowerCase())) {
+              if (formText === text) {
                 const inputId = label.getAttribute('for');
                 const input = document.getElementById(inputId);
                 if (input) {
@@ -607,39 +602,142 @@ function fillJobApplicationForm() {
         }
       };
 
-      const fillInputByDiv = (divText, value) => {
+      const fillInputByPlaceholder = (placeholderText, value) => {
         try {
-          allDivs.forEach((div) => {
-            const divContent = div.textContent.trim().toLowerCase();
-            divText.forEach((text) => {
-              if (divContent.includes(text.toLowerCase())) {
-                if (div.nextElementSibling) {
-                  const input = div.nextElementSibling.querySelector(
-                    'input, textarea, select'
-                  );
-                  if (input) {
-                    if (input.tagName.toLowerCase() === 'select') {
-                      Array.from(input.options).forEach((option) => {
-                        if (option.text.toLowerCase() === value.toLowerCase()) {
-                          input.value = option.value;
-                        }
-                      });
-                    } else if (input.type === 'radio') {
-                      const radio = document.querySelector(
-                        `input[name="${
-                          input.name
-                        }"][value="${value.toLowerCase()}"]`
-                      );
-                      if (radio) {
-                        radio.checked = true;
-                      }
-                    } else {
-                      input.value = value;
+          allInputs.forEach((input) => {
+            const placeholder = input
+              .getAttribute('placeholder')
+              ?.trim()
+              .toLowerCase();
+            placeholderText.forEach((text) => {
+              if (placeholder && placeholder === text) {
+                if (input.tagName.toLowerCase() === 'select') {
+                  Array.from(input.options).forEach((option) => {
+                    if (option.text.toLowerCase() === value.toLowerCase()) {
+                      input.value = option.value;
                     }
+                  });
+                } else if (input.type === 'radio') {
+                  const radio = document.querySelector(
+                    `input[name="${
+                      input.name
+                    }"][value="${value.toLowerCase()}"]`
+                  );
+                  if (radio) {
+                    radio.checked = true;
+                  }
+                } else {
+                  input.value = value;
+                }
+              }
+            });
+          });
+        } catch (error) {
+          console.error('Error in fillInputByPlaceholder:', error);
+        }
+      };
+
+      const fillInputByName = (nameText, value) => {
+        try {
+          allInputs.forEach((input) => {
+            const nameAttr = input.getAttribute('name')?.trim().toLowerCase();
+            nameText.forEach((text) => {
+              if (nameAttr && nameAttr === text) {
+                if (input.tagName.toLowerCase() === 'select') {
+                  Array.from(input.options).forEach((option) => {
+                    if (option.text.toLowerCase() === value.toLowerCase()) {
+                      input.value = option.value;
+                    }
+                  });
+                } else if (input.type === 'radio') {
+                  const radio = document.querySelector(
+                    `input[name="${
+                      input.name
+                    }"][value="${value.toLowerCase()}"]`
+                  );
+                  if (radio) {
+                    radio.checked = true;
+                  }
+                } else {
+                  input.value = value;
+                }
+              }
+            });
+          });
+        } catch (error) {
+          console.error('Error in fillInputByName:', error);
+        }
+      };
+
+      const fillInputById = (idText, value) => {
+        try {
+          allInputs.forEach((input) => {
+            const idAttr = input.getAttribute('id')?.trim().toLowerCase();
+            idText.forEach((text) => {
+              if (idAttr && idAttr === text) {
+                if (input.tagName.toLowerCase() === 'select') {
+                  Array.from(input.options).forEach((option) => {
+                    if (option.text.toLowerCase() === value.toLowerCase()) {
+                      input.value = option.value;
+                    }
+                  });
+                } else if (input.type === 'radio') {
+                  const radio = document.querySelector(
+                    `input[name="${
+                      input.name
+                    }"][value="${value.toLowerCase()}"]`
+                  );
+                  if (radio) {
+                    radio.checked = true;
+                  }
+                } else {
+                  input.value = value;
+                }
+              }
+            });
+          });
+        } catch (error) {
+          console.error('Error in fillInputById:', error);
+        }
+      };
+      const fillInputByLabelIncludes = (labelText, value) => {
+        try {
+          allLabels.forEach((label) => {
+            const formText = label.textContent.trim().toLowerCase();
+            labelText.forEach((text) => {
+              if (formText === 'address') {
+                const inputId = label.getAttribute('for');
+                const input = document.getElementById(inputId);
+                if (input) {
+                  input.value = fieldValues.currentLocation;
+                  return;
+                }
+              }
+              if (formText.includes(text)) {
+                const inputId = label.getAttribute('for');
+                const input = document.getElementById(inputId);
+                if (input) {
+                  if (input.tagName.toLowerCase() === 'select') {
+                    Array.from(input.options).forEach((option) => {
+                      if (option.text.toLowerCase() === value.toLowerCase()) {
+                        input.value = option.value;
+                      }
+                    });
+                  } else if (input.type === 'radio') {
+                    const radio = document.querySelector(
+                      `input[name="${
+                        input.name
+                      }"][value="${value.toLowerCase()}"]`
+                    );
+                    if (radio) {
+                      radio.checked = true;
+                    }
+                  } else {
+                    input.value = value;
                   }
                 } else {
                   const radios =
-                    div.parentElement.querySelectorAll(`input[type="radio"]`);
+                    label.parentElement.querySelectorAll(`input[type="radio"]`);
                   radios.forEach((radio) => {
                     if (radio.value.toLowerCase() === value.toLowerCase()) {
                       radio.checked = true;
@@ -650,11 +748,11 @@ function fillJobApplicationForm() {
             });
           });
         } catch (error) {
-          console.error('Error in fillInputByDiv:', error);
+          console.error('Error in fillInputByLabel:', error);
         }
       };
 
-      const fillInputByPlaceholder = (placeholderText, value) => {
+      const fillInputByPlaceholderIncludes = (placeholderText, value) => {
         try {
           allInputs.forEach((input) => {
             const placeholder = input
@@ -689,7 +787,7 @@ function fillJobApplicationForm() {
         }
       };
 
-      const fillInputByName = (nameText, value) => {
+      const fillInputByNameIncludes = (nameText, value) => {
         try {
           allInputs.forEach((input) => {
             const nameAttr = input.getAttribute('name')?.trim().toLowerCase();
@@ -711,7 +809,11 @@ function fillJobApplicationForm() {
                     radio.checked = true;
                   }
                 } else {
-                  input.value = value;
+                  if (input.name === 'address') {
+                    input.value = fieldValues.currentLocation;
+                  } else {
+                    input.value = value;
+                  }
                 }
               }
             });
@@ -721,7 +823,7 @@ function fillJobApplicationForm() {
         }
       };
 
-      const fillInputById = (idText, value) => {
+      const fillInputByIdIncludes = (idText, value) => {
         try {
           allInputs.forEach((input) => {
             const idAttr = input.getAttribute('id')?.trim().toLowerCase();
@@ -755,11 +857,21 @@ function fillJobApplicationForm() {
 
       const fillInput = (labelTextArray, value) => {
         fillInputByLabel(labelTextArray, value);
-        fillInputByDiv(labelTextArray, value);
         fillInputByPlaceholder(labelTextArray, value);
         fillInputByName(labelTextArray, value);
         fillInputById(labelTextArray, value);
       };
+
+      const fuzzyFillInput = (labelTextArray, value) => {
+        fillInputByLabelIncludes(labelTextArray, value);
+        fillInputByPlaceholderIncludes(labelTextArray, value);
+        fillInputByNameIncludes(labelTextArray, value);
+        fillInputByIdIncludes(labelTextArray, value);
+      };
+
+      fieldsToSearch.forEach((key) => {
+        fuzzyFillInput(fieldNames[key], fieldValues[key]);
+      });
 
       fieldsToSearch.forEach((key) => {
         fillInput(fieldNames[key], fieldValues[key]);
