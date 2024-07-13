@@ -15,7 +15,6 @@
       }
       .container {
         background-color: #fff;
-        border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         padding: 30px;
         max-width: 400px;
@@ -45,8 +44,8 @@
         background-color: #4a90e2;
         color: white;
         border: none;
-        border-radius: 4px;
-        padding: 10px 20px;
+        border-radius: 18px;
+        padding: 20px 30px;
         font-size: 16px;
         cursor: pointer;
         transition: background-color 0.3s ease;
@@ -58,32 +57,72 @@
       .hidden {
         display: none;
       }
+      .claymorphic-shadow {
+        box-shadow: 12px 12px 40px 0px rgba(170, 170, 170, 0.5),
+          inset -4px -4px 8px 0px rgba(112, 112, 112, 0.6),
+          inset 0px 6px 14px 0px #8dc2ff;
+        backdrop-filter: blur(10px);
+      }
+
+      .claymorphic-shadow-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 30px 30px 60px 0px rgba(112, 112, 112, 0.5),
+          inset -5px -5px 10px 0px rgba(112, 112, 112, 0.6),
+          inset 0px 7px 18px 0px rgb(255, 255, 255);
+        backdrop-filter: blur(10px);
+      }
+
+      .claymorphic-shadow-hover:active {
+        transform: translateY(0px);
+        box-shadow: 12px 12px 40px 0px rgba(170, 170, 170, 0.5),
+          inset -4px -4px 8px 0px rgba(112, 112, 112, 0.6),
+          inset 0px 6px 14px 0px rgb(255, 255, 255);
+        backdrop-filter: blur(10px);
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div id="codeEntrySection">
-        <h2>Enter Your Code</h2>
+        <h2>Enter Your Access Key</h2>
         <br />
         <input type="text" id="userCode" placeholder="Enter code here" />
         <small
-          >A code can be issued by accessing your plugin settings at
-          job-application-tracking-dev.vercel.app</small
+          >An access can be issued by accessing your plugin settings at
+          job-application-tracking-dev.vercel.app/settings</small
         >
         <br />
-        <button id="saveCode">Save Code</button>
+        <button class="claymorphic-shadow" id="saveCode">
+          Save Access Key
+        </button>
       </div>
       <div id="actionSection" class="actionSection hidden">
-        <h2>Code Saved</h2>
-        <button id="fillApplication">Fill Out Application</button>
-        <button id="logApplication">Log Application</button>
-        <button id="clearCode">Clear Code</button>
+        <h2>Job Application Tracking</h2>
+        <button class="claymorphic-shadow" id="fillApplication">
+          Fill Out Application
+        </button>
+        <button class="claymorphic-shadow" id="logApplication">
+          Log Application
+        </button>
+        <button class="claymorphic-shadow" id="clearCode">Clear My Info</button>
       </div>
       <div id="logApplicationSection" class="hidden">
         <h2>Log Job Application</h2>
-        <input type="text" id="companyName" placeholder="Company Name" />
-        <input type="text" id="jobName" placeholder="Job Name" />
-        <button id="submitApplication">Submit</button>
+        <input
+          class="claymorphic-shadow"
+          type="text"
+          id="companyName"
+          placeholder="Company Name"
+        />
+        <input
+          class="claymorphic-shadow"
+          type="text"
+          id="jobName"
+          placeholder="Job Name"
+        />
+        <button class="claymorphic-shadow" id="submitApplication">
+          Submit
+        </button>
       </div>
     </div>
     <script src="popup.js"></script>

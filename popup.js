@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const personalInformation = await fetchPersonalInformation(userCode);
       chrome.storage.sync.set({ personalInformation });
     } else {
-      alert('Please enter a code.');
+      alert('Please enter an access code.');
     }
   });
 
@@ -56,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   clearCodeButton.addEventListener('click', () => {
+    chrome.storage.sync.remove('personalInformation');
     chrome.storage.sync.remove('userCode', () => {
-      alert('Code cleared successfully!');
       codeEntrySection.classList.remove('hidden');
       actionSection.classList.add('hidden');
     });
