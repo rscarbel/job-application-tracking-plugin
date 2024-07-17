@@ -19,12 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const showExtraFieldsButton = document.getElementById('showMoreFields');
   const extraFields = document.getElementById('extraFields');
   const payErrorMessage = document.getElementById('pay-error-message');
+  const closeButton = document.getElementById('closeButton');
 
   function resizePopup() {
     const container = document.querySelector('.container');
     document.body.style.height = container.scrollHeight + 'px';
     window.resizeTo(document.body.scrollWidth, document.body.scrollHeight);
   }
+
+  closeButton.addEventListener('click', () => {
+    window.close();
+  });
 
   chrome.storage.sync.get('userCode', (result) => {
     if (result.userCode) {
