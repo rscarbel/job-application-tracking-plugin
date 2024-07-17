@@ -60,9 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
   saveCodeButton.addEventListener('click', async () => {
     const userCode = userCodeInput.value;
     if (userCode) {
+      saveCodeButton.disabled = true;
+      saveCodeButton.textContent = 'Loading...';
       chrome.storage.sync.set({ userCode: userCode }, async () => {
-        codeEntrySection.classList.add('hidden');
-        actionSection.classList.remove('hidden');
         resizePopup();
       });
       const personalInformation = await fetchPersonalInformation(userCode);
@@ -73,12 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         chrome.storage.sync.set({ personalInformation });
       }
+      codeEntrySection.classList.add('hidden');
+      actionSection.classList.remove('hidden');
+      saveCodeButton.disabled = false;
+      saveCodeButton.textContent = 'Save Access Key';
     } else {
       alert('Please enter an access code.');
     }
   });
 
   fillApplicationButton.addEventListener('click', () => {
+    fillApplicationButton.disabled = true;
+    fillApplicationButton.textContent = 'Filling out application...';
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
         chrome.scripting
@@ -86,22 +92,38 @@ document.addEventListener('DOMContentLoaded', () => {
             target: { tabId: tabs[0].id },
             func: fillJobApplicationForm,
           })
-          .then(() => console.log('filled out the page'))
-          .catch((error) =>
-            console.error('Error filling out the page:', error)
-          );
+          .then(() => {
+            fillApplicationButton.disabled = false;
+            fillApplicationButton.textContent = 'Fill Out Application';
+          })
+          .then(() => {
+            console.log('filled out the page');
+            fillApplicationButton.disabled = false;
+            fillApplicationButton.textContent = 'Fill Out Application';
+          })
+          .catch((error) => {
+            console.error('Error filling out the page:', error);
+            fillApplicationButton.disabled = false;
+            fillApplicationButton.textContent = 'Fill Out Application';
+          });
       } else {
         console.error('No active tab found.');
+        fillApplicationButton.disabled = false;
+        fillApplicationButton.textContent = 'Fill Out Application';
       }
     });
   });
 
   clearCodeButton.addEventListener('click', () => {
+    clearCodeButton.disabled = true;
+    clearCodeButton.textContent = 'Loading...';
     chrome.storage.sync.remove('personalInformation');
     chrome.storage.sync.remove('userCode', () => {
       codeEntrySection.classList.remove('hidden');
       actionSection.classList.add('hidden');
       resizePopup();
+      clearCodeButton.disabled = false;
+      clearCodeButton.textContent = 'Clear My Info';
     });
   });
 
@@ -120,6 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const payAmount = payAmountInput.value;
 
     if (companyName && jobName) {
+      submitApplicationButton.disabled = true;
+      submitApplicationButton.textContent = 'Loading...';
       chrome.storage.sync.get('userCode', (result) => {
         const userCode = result.userCode;
         if (userCode) {
@@ -147,11 +171,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   resizePopup();
                   window.close();
                 }
+                submitApplicationButton.disabled = false;
+                submitApplicationButton.textContent = 'Submit';
               }
             }
           );
         } else {
           alert('User code not found. Please enter your code again.');
+          submitApplicationButton.disabled = false;
+          submitApplicationButton.textContent = 'Submit';
         }
       });
     } else {
@@ -965,10 +993,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         allInputs.forEach((input) => {
           try {
-            if (input.type === 'email') {
+            if (input.type === 'email' && fieldValues.email) {
               input.value = fieldValues.email;
             }
-            if (input.type === 'tel') {
+            if (input.type === 'tel' && fieldValues.phone) {
               input.value = fieldValues.phone;
             }
           } catch (error) {
