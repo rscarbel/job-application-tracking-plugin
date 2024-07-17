@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const extraFields = document.getElementById('extraFields');
   const payErrorMessage = document.getElementById('pay-error-message');
   const closeButton = document.getElementById('closeButton');
+  const resyncPersonalInfoButton =
+    document.getElementById('resyncPersonalInfo');
 
   function resizePopup() {
     const container = document.querySelector('.container');
@@ -80,6 +82,32 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       alert('Please enter an access code.');
     }
+  });
+
+  resyncPersonalInfoButton.addEventListener('click', async () => {
+    resyncPersonalInfoButton.disabled = true;
+    resyncPersonalInfoButton.textContent = 'Loading...';
+    chrome.storage.sync.get('userCode', async (result) => {
+      const userCode = result.userCode;
+      if (userCode) {
+        const personalInformation = await fetchPersonalInformation(userCode);
+        if (!personalInformation) {
+          resyncPersonalInfoButton.disabled = false;
+          resyncPersonalInfoButton.textContent = 'Resync Personal Information';
+          alert(
+            'Failed to fetch personal information. Please try again later.'
+          );
+        } else {
+          resyncPersonalInfoButton.disabled = false;
+          resyncPersonalInfoButton.textContent = 'Resync Personal Information';
+          alert('Personal information resynced successfully!');
+        }
+      } else {
+        resyncPersonalInfoButton.disabled = false;
+        resyncPersonalInfoButton.textContent = 'Resync Personal Information';
+        alert('User access key not found. Please enter your code again.');
+      }
+    });
   });
 
   fillApplicationButton.addEventListener('click', () => {
