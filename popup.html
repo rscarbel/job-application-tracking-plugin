@@ -23,6 +23,7 @@
         text-align: center;
         display: flex;
         flex-direction: column;
+        border-radius: 8px;
       }
       .actionSection {
         display: flex;
@@ -39,45 +40,80 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         font-size: 16px;
+        transition: border-color 0.3s ease;
+      }
+      input[type='text']:focus {
+        border-color: #4a90e2;
       }
       button {
         background-color: #4a90e2;
         color: white;
         border: none;
         border-radius: 18px;
-        padding: 20px 30px;
+        padding: 15px 30px;
         font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.3s ease;
+        transition: background-color 0.3s ease, transform 0.3s ease;
         margin: 5px 0;
       }
       button:hover {
         background-color: #357ab8;
+        transform: translateY(-2px);
       }
       .hidden {
         display: none;
       }
       .claymorphic-shadow {
-        box-shadow: 12px 12px 40px 0px rgba(170, 170, 170, 0.5),
-          inset -4px -4px 8px 0px rgba(112, 112, 112, 0.6),
-          inset 0px 6px 14px 0px #8dc2ff;
+        box-shadow: 4px 4px 20px 0px rgba(170, 170, 170, 0.5),
+          inset -2px -2px 4px 0px rgba(112, 112, 112, 0.6),
+          inset 0px 3px 7px 0px rgb(140, 140, 140);
         backdrop-filter: blur(10px);
       }
-
       .claymorphic-shadow-hover:hover {
         transform: translateY(-5px);
-        box-shadow: 30px 30px 60px 0px rgba(112, 112, 112, 0.5),
-          inset -5px -5px 10px 0px rgba(112, 112, 112, 0.6),
-          inset 0px 7px 18px 0px rgb(255, 255, 255);
-        backdrop-filter: blur(10px);
+        box-shadow: 15px 15px 30px 0px rgba(112, 112, 112, 0.5),
+          inset -2.5px -2.5px 5px 0px rgba(112, 112, 112, 0.6),
+          inset 0px 3.5px 9px 0px rgb(155, 155, 155);
+        backdrop-filter: blur(5px);
       }
-
       .claymorphic-shadow-hover:active {
         transform: translateY(0px);
-        box-shadow: 12px 12px 40px 0px rgba(170, 170, 170, 0.5),
-          inset -4px -4px 8px 0px rgba(112, 112, 112, 0.6),
-          inset 0px 6px 14px 0px rgb(255, 255, 255);
-        backdrop-filter: blur(10px);
+        box-shadow: 6px 6px 20px 0px rgba(170, 170, 170, 0.5),
+          inset -2px -2px 4px 0px rgba(112, 112, 112, 0.6),
+          inset 0px 3px 7px 0px rgb(149, 149, 149);
+        backdrop-filter: blur(5px);
+      }
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        background-color: #fff;
+        transition: border-color 0.3s ease;
+        appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%234a90e2" d="M2 0L0 2h4zM2 5L0 3h4z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 10px;
+      }
+      select:focus {
+        border-color: #4a90e2;
+        outline: none;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+        color: #666;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        color: #666666;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
       }
     </style>
   </head>
@@ -85,13 +121,24 @@
     <div class="container">
       <div id="codeEntrySection">
         <h2>Enter Your Access Key</h2>
-        <br />
         <input type="text" id="userCode" placeholder="Enter code here" />
         <small
-          >An access can be issued by accessing your plugin settings at
-          job-application-tracking-dev.vercel.app/settings?tab=manage-personal-info</small
-        >
-        <br />
+          >If you have an account with our platform, get your
+          <a
+            href="https://job-application-tracking-dev.vercel.app/settings?tab=manage-personal-info"
+            >access key here.</a
+          >
+        </small>
+        <br /><br />
+        <small
+          >If you do not have an account with our platform, create an account by
+          going to
+          <a
+            href="https://job-application-tracking-dev.vercel.app/api/auth/signin"
+            >login here.</a
+          >
+        </small>
+        <br /><br />
         <button class="claymorphic-shadow" id="saveCode">
           Save Access Key
         </button>
@@ -108,19 +155,35 @@
       </div>
       <div id="logApplicationSection" class="hidden">
         <h2>Log Job Application</h2>
-        <input
-          class="claymorphic-shadow"
-          type="text"
-          id="companyName"
-          placeholder="Company Name"
-        />
-        <input
-          class="claymorphic-shadow"
-          type="text"
-          id="jobName"
-          placeholder="Job Name"
-        />
-        <button class="claymorphic-shadow" id="submitApplication">
+        <label for="companyName">Company Name *</label>
+        <input required type="text" id="companyName" name="companyName" />
+        <label for="jobName">Job Name *</label>
+        <input required type="text" id="jobName" name="jobName" />
+        <div id="extraFields" class="hidden">
+          <label for="city">City (optional)</label>
+          <input type="text" id="city" name="city" />
+          <label for="state">State (optional)</label>
+          <input type="text" id="state" name="state" />
+          <label for="workMode">Work Mode (optional)</label>
+          <select id="workMode" name="workMode">
+            <option value="ONSITE">On site</option>
+            <option value="REMOTE">Remote</option>
+            <option value="HYBRID">Hybrid</option>
+          </select>
+          <label for="payAmount">Pay Amount (optional)</label>
+          <input
+            type="text"
+            id="payAmount"
+            name="payAmount"
+            pattern="^\d*(\.\d{0,2})?$"
+            title="Please enter a valid amount with up to two decimal places."
+          />
+          <span id="pay-error-message" style="color: red; display: none"
+            >Please enter a valid amount with up to two decimal places.</span
+          >
+        </div>
+        <button id="showMoreFields">Show More Fields</button>
+        <button class="claymorphic-shadow" disabled id="submitApplication">
           Submit
         </button>
       </div>

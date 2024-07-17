@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const submitApplicationButton = document.getElementById('submitApplication');
   const companyNameInput = document.getElementById('companyName');
   const jobNameInput = document.getElementById('jobName');
+  const cityInput = document.getElementById('city');
+  const stateInput = document.getElementById('state');
+  const workModeInput = document.getElementById('workMode');
+  const payAmountInput = document.getElementById('payAmount');
+  const showExtraFieldsButton = document.getElementById('showMoreFields');
+  const extraFields = document.getElementById('extraFields');
+  const payErrorMessage = document.getElementById('pay-error-message');
 
   chrome.storage.sync.get('userCode', (result) => {
     if (result.userCode) {
@@ -23,6 +30,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  payAmountInput.addEventListener('input', validateForm);
+  companyNameInput.addEventListener('input', validateForm);
+  jobNameInput.addEventListener('input', validateForm);
+
+  showExtraFieldsButton.addEventListener('click', () => {
+    if (extraFields.classList.contains('hidden')) {
+      extraFields.classList.remove('hidden');
+      showExtraFieldsButton.textContent = 'Hide extra fields';
+    } else {
+      extraFields.classList.add('hidden');
+      showExtraFieldsButton.textContent = 'Show extra fields';
+    }
+  });
+
   saveCodeButton.addEventListener('click', async () => {
     const userCode = userCodeInput.value;
     if (userCode) {
@@ -31,7 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
         actionSection.classList.remove('hidden');
       });
       const personalInformation = await fetchPersonalInformation(userCode);
-      chrome.storage.sync.set({ personalInformation });
+      if (!personalInformation) {
+        alert(
+          'Failed to fetch personal information. Please enter your code again.'
+        );
+      } else {
+        chrome.storage.sync.set({ personalInformation });
+      }
     } else {
       alert('Please enter an access code.');
     }
@@ -71,6 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
   submitApplicationButton.addEventListener('click', async () => {
     const companyName = companyNameInput.value;
     const jobName = jobNameInput.value;
+    const city = cityInput.value;
+    const state = stateInput.value;
+    const workMode = workModeInput.value;
+    const payAmount = payAmountInput.value;
 
     if (companyName && jobName) {
       chrome.storage.sync.get('userCode', (result) => {
@@ -87,11 +118,18 @@ document.addEventListener('DOMContentLoaded', () => {
                   jobName,
                   applicationURL,
                   userCode,
+                  city,
+                  state,
+                  workMode,
+                  payAmount,
                 };
-                await logJobApplication(payload);
-                alert('Job application logged successfully!');
-                logApplicationSection.classList.add('hidden');
-                actionSection.classList.remove('hidden');
+                const isSuccessful = await logJobApplication(payload);
+                if (isSuccessful) {
+                  alert('Job application logged successfully!');
+                  logApplicationSection.classList.add('hidden');
+                  actionSection.classList.remove('hidden');
+                  window.close();
+                }
               }
             }
           );
@@ -103,20 +141,41 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Please fill in all fields.');
     }
   });
+
+  function validateForm() {
+    const companyName = companyNameInput.value.trim();
+    const jobName = jobNameInput.value.trim();
+    const payAmount = payAmountInput.value.trim();
+    const regex = /^\d*(\.\d{0,2})?$/;
+
+    let isValid = true;
+
+    if (!companyName || !jobName) {
+      isValid = false;
+    }
+
+    if (payAmount && !regex.test(payAmount)) {
+      payErrorMessage.style.display = 'inline';
+      isValid = false;
+    } else {
+      payErrorMessage.style.display = 'none';
+    }
+
+    submitApplicationButton.disabled = !isValid;
+  }
 });
 
 async function fetchPersonalInformation(userCode) {
-  const url = `https://job-application-tracking-dev.vercel.app/api/plugin/getPersonalInformation?userCode=${userCode}`;
+  const url = `http://localhost:3000/api/plugin/getPersonalInformation?userCode=${userCode}`;
   try {
     const response = await fetch(url);
-    if (response.ok) {
+    if (response.status === 200) {
       const personalInformation = await response.json();
       chrome.storage.sync.set({ personalInformation });
       return personalInformation;
     } else {
-      console.error(
-        'Failed to fetch personal information:',
-        response.statusText
+      alert(
+        `Failed to fetch personal information. Error message: ${response.statusText}`
       );
     }
   } catch (error) {
@@ -125,8 +184,7 @@ async function fetchPersonalInformation(userCode) {
 }
 
 async function logJobApplication(payload) {
-  const url =
-    'https://job-application-tracking-dev.vercel.app/api/plugin/logApplication';
+  const url = 'http://localhost:3000/api/plugin/logApplication';
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -136,10 +194,13 @@ async function logJobApplication(payload) {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      console.error('Failed to log job application:', response.statusText);
+      alert(`Failed to log job application: ${response.statusText}`);
+      return false;
     }
+    return true;
   } catch (error) {
     console.error('Error logging job application:', error);
+    return false;
   }
 }
 
