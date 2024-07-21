@@ -179,10 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<i class="fas fa-edit"></i> Fill Out Application';
             });
         } else {
-          console.error('No active tab found.');
           fillApplicationButton.disabled = false;
           fillApplicationButton.innerHTML =
             '<i class="fas fa-edit"></i> Fill Out Application';
+          alert(
+            'We cannot find the active tab. You cannot navigate to another tab or window after clicking the plugin icon. The plugin only is authorized to fill out forms on the active tab, which is found when you click the plugin icon while on the page you want to fill out. '
+          );
         }
       });
     });
@@ -391,9 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
       title: personalInfo.title || '',
       zip: personalInfo.postalCode || '',
     };
-
-    const allLabels = document.querySelectorAll('label');
-    const allInputs = document.querySelectorAll('input, select');
 
     const fieldNames = {
       addressLine1: [
@@ -775,353 +774,78 @@ document.addEventListener('DOMContentLoaded', () => {
       'expectedSalary',
     ];
 
-    const fillInputByLabel = (labelText, value) => {
-      try {
+    const allLabels = Array.from(document.querySelectorAll('label'));
+    const allInputs = Array.from(
+      document.querySelectorAll('input, select, textarea')
+    );
+
+    const fillInputField = (input, value) => {
+      if (input.tagName.toLowerCase() === 'select') {
+        Array.from(input.options).forEach((option) => {
+          if (option.text.toLowerCase() === value.toLowerCase()) {
+            input.value = option.value;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        });
+      } else if (input.type === 'radio' || input.type === 'checkbox') {
+        if (input.value.toLowerCase() === value.toLowerCase()) {
+          input.checked = true;
+          input.dispatchEvent(new Event('click', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } else {
+        input.value = value;
+        input.dispatchEvent(new Event('click', { bubbles: true }));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('blur', { bubbles: true }));
+      }
+    };
+
+    const matchAndFillFields = (fieldNames, fieldValues) => {
+      for (const key of fieldsToSearch) {
+        const aliases = fieldNames[key];
+        const value = fieldValues[key];
+
         allLabels.forEach((label) => {
-          const formText = label.textContent.trim().toLowerCase();
-          labelText.forEach((text) => {
-            if (formText === text) {
+          const labelText = label.textContent.trim().toLowerCase();
+          aliases.forEach((alias) => {
+            if (labelText.includes(alias)) {
               const inputId = label.getAttribute('for');
               const input = document.getElementById(inputId);
               if (input) {
-                if (input.tagName.toLowerCase() === 'select') {
-                  Array.from(input.options).forEach((option) => {
-                    if (option.text.toLowerCase() === value.toLowerCase()) {
-                      input.value = option.value;
-                      input.dispatchEvent(
-                        new Event('change', { bubbles: true })
-                      );
-                    }
-                  });
-                } else if (input.type === 'radio') {
-                  const radio = document.querySelector(
-                    `input[name="${
-                      input.name
-                    }"][value="${value.toLowerCase()}"]`
-                  );
-                  if (radio) {
-                    radio.checked = true;
-                    radio.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                } else {
-                  input.value = value;
-                  input.dispatchEvent(new Event('input', { bubbles: true }));
-                  input.dispatchEvent(new Event('blur', { bubbles: true }));
-                }
-              } else {
-                const radios =
-                  label.parentElement.querySelectorAll(`input[type="radio"]`);
-                radios.forEach((radio) => {
-                  if (radio.value.toLowerCase() === value.toLowerCase()) {
-                    radio.checked = true;
-                    radio.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
+                fillInputField(input, value);
               }
             }
           });
         });
-      } catch (error) {
-        console.error('Error in fillInputByLabel:', error);
-      }
-    };
 
-    const fillInputByPlaceholder = (placeholderText, value) => {
-      try {
         allInputs.forEach((input) => {
           const placeholder = input
             .getAttribute('placeholder')
             ?.trim()
             .toLowerCase();
-          placeholderText.forEach((text) => {
-            if (placeholder && placeholder === text) {
-              if (input.tagName.toLowerCase() === 'select') {
-                Array.from(input.options).forEach((option) => {
-                  if (option.text.toLowerCase() === value.toLowerCase()) {
-                    input.value = option.value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
-              } else if (input.type === 'radio') {
-                const radio = document.querySelector(
-                  `input[name="${input.name}"][value="${value.toLowerCase()}"]`
-                );
-                if (radio) {
-                  radio.checked = true;
-                  radio.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-              } else {
-                input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('blur', { bubbles: true }));
-              }
-            }
-          });
-        });
-      } catch (error) {
-        console.error('Error in fillInputByPlaceholder:', error);
-      }
-    };
-
-    const fillInputByName = (nameText, value) => {
-      try {
-        allInputs.forEach((input) => {
           const nameAttr = input.getAttribute('name')?.trim().toLowerCase();
-          nameText.forEach((text) => {
-            if (nameAttr && nameAttr === text) {
-              if (input.tagName.toLowerCase() === 'select') {
-                Array.from(input.options).forEach((option) => {
-                  if (option.text.toLowerCase() === value.toLowerCase()) {
-                    input.value = option.value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
-              } else if (input.type === 'radio') {
-                const radio = document.querySelector(
-                  `input[name="${input.name}"][value="${value.toLowerCase()}"]`
-                );
-                if (radio) {
-                  radio.checked = true;
-                  radio.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-              } else {
-                input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('blur', { bubbles: true }));
-              }
-            }
-          });
-        });
-      } catch (error) {
-        console.error('Error in fillInputByName:', error);
-      }
-    };
-
-    const fillInputById = (idText, value) => {
-      try {
-        allInputs.forEach((input) => {
           const idAttr = input.getAttribute('id')?.trim().toLowerCase();
-          idText.forEach((text) => {
-            if (idAttr && idAttr === text) {
-              if (input.tagName.toLowerCase() === 'select') {
-                Array.from(input.options).forEach((option) => {
-                  if (option.text.toLowerCase() === value.toLowerCase()) {
-                    input.value = option.value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
-              } else if (input.type === 'radio') {
-                const radio = document.querySelector(
-                  `input[name="${input.name}"][value="${value.toLowerCase()}"]`
-                );
-                if (radio) {
-                  radio.checked = true;
-                  radio.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-              } else {
-                input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('blur', { bubbles: true }));
-              }
+
+          aliases.forEach((alias) => {
+            if (placeholder && placeholder.includes(alias)) {
+              fillInputField(input, value);
+            } else if (nameAttr && nameAttr.includes(alias)) {
+              fillInputField(input, value);
+            } else if (idAttr && idAttr.includes(alias)) {
+              fillInputField(input, value);
             }
           });
         });
-      } catch (error) {
-        console.error('Error in fillInputById:', error);
       }
     };
 
-    const fillInputByLabelIncludes = (labelText, value) => {
-      try {
-        allLabels.forEach((label) => {
-          const formText = label.textContent.trim().toLowerCase();
-          labelText.forEach((text) => {
-            if (formText.includes(text)) {
-              const inputId = label.getAttribute('for');
-              const input = document.getElementById(inputId);
-              if (input) {
-                if (input.tagName.toLowerCase() === 'select') {
-                  Array.from(input.options).forEach((option) => {
-                    if (option.text.toLowerCase() === value.toLowerCase()) {
-                      input.value = option.value;
-                      input.dispatchEvent(
-                        new Event('change', { bubbles: true })
-                      );
-                    }
-                  });
-                } else if (input.type === 'radio') {
-                  const radio = document.querySelector(
-                    `input[name="${
-                      input.name
-                    }"][value="${value.toLowerCase()}"]`
-                  );
-                  if (radio) {
-                    radio.checked = true;
-                    radio.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                } else {
-                  input.value = value;
-                  input.dispatchEvent(new Event('input', { bubbles: true }));
-                  input.dispatchEvent(new Event('blur', { bubbles: true }));
-                }
-              } else {
-                const radios =
-                  label.parentElement.querySelectorAll(`input[type="radio"]`);
-                radios.forEach((radio) => {
-                  if (radio.value.toLowerCase() === value.toLowerCase()) {
-                    radio.checked = true;
-                    radio.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
-              }
-            }
-          });
-        });
-      } catch (error) {
-        console.error('Error in fillInputByLabelIncludes:', error);
-      }
-    };
+    try {
+      matchAndFillFields(fieldNames, fieldValues);
+    } catch (error) {
+      console.error('Error in matching and filling fields:', error);
+    }
 
-    const fillInputByPlaceholderIncludes = (placeholderText, value) => {
-      try {
-        allInputs.forEach((input) => {
-          const placeholder = input
-            .getAttribute('placeholder')
-            ?.trim()
-            .toLowerCase();
-          placeholderText.forEach((text) => {
-            if (placeholder && placeholder.includes(text.toLowerCase())) {
-              if (input.tagName.toLowerCase() === 'select') {
-                Array.from(input.options).forEach((option) => {
-                  if (option.text.toLowerCase() === value.toLowerCase()) {
-                    input.value = option.value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
-              } else if (input.type === 'radio') {
-                const radio = document.querySelector(
-                  `input[name="${input.name}"][value="${value.toLowerCase()}"]`
-                );
-                if (radio) {
-                  radio.checked = true;
-                  radio.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-              } else {
-                input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('blur', { bubbles: true }));
-              }
-            }
-          });
-        });
-      } catch (error) {
-        console.error('Error in fillInputByPlaceholderIncludes:', error);
-      }
-    };
-
-    const fillInputByNameIncludes = (nameText, value) => {
-      try {
-        allInputs.forEach((input) => {
-          const nameAttr = input.getAttribute('name')?.trim().toLowerCase();
-          nameText.forEach((text) => {
-            if (nameAttr && nameAttr.includes(text.toLowerCase())) {
-              if (input.tagName.toLowerCase() === 'select') {
-                Array.from(input.options).forEach((option) => {
-                  if (option.text.toLowerCase() === value.toLowerCase()) {
-                    input.value = option.value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
-              } else if (input.type === 'radio') {
-                const radio = document.querySelector(
-                  `input[name="${input.name}"][value="${value.toLowerCase()}"]`
-                );
-                if (radio) {
-                  radio.checked = true;
-                  radio.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-              } else {
-                input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('blur', { bubbles: true }));
-              }
-            }
-          });
-        });
-      } catch (error) {
-        console.error('Error in fillInputByNameIncludes:', error);
-      }
-    };
-
-    const fillInputByIdIncludes = (idText, value) => {
-      try {
-        allInputs.forEach((input) => {
-          const idAttr = input.getAttribute('id')?.trim().toLowerCase();
-          idText.forEach((text) => {
-            if (idAttr && idAttr.includes(text.toLowerCase())) {
-              if (input.tagName.toLowerCase() === 'select') {
-                Array.from(input.options).forEach((option) => {
-                  if (option.text.toLowerCase() === value.toLowerCase()) {
-                    input.value = option.value;
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                  }
-                });
-              } else if (input.type === 'radio') {
-                const radio = document.querySelector(
-                  `input[name="${input.name}"][value="${value.toLowerCase()}"]`
-                );
-                if (radio) {
-                  radio.checked = true;
-                  radio.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-              } else {
-                input.value = value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('blur', { bubbles: true }));
-              }
-            }
-          });
-        });
-      } catch (error) {
-        console.error('Error in fillInputByIdIncludes:', error);
-      }
-    };
-
-    const fillInput = (labelTextArray, value) => {
-      fillInputByLabel(labelTextArray, value);
-      fillInputByPlaceholder(labelTextArray, value);
-      fillInputByName(labelTextArray, value);
-      fillInputById(labelTextArray, value);
-    };
-
-    const fuzzyFillInput = (labelTextArray, value) => {
-      fillInputByLabelIncludes(labelTextArray, value);
-      fillInputByPlaceholderIncludes(labelTextArray, value);
-      fillInputByNameIncludes(labelTextArray, value);
-      fillInputByIdIncludes(labelTextArray, value);
-    };
-
-    fieldsToSearch.forEach((key) => {
-      fuzzyFillInput(fieldNames[key], fieldValues[key]);
-    });
-
-    fieldsToSearch.forEach((key) => {
-      fillInput(fieldNames[key], fieldValues[key]);
-    });
-
-    allInputs.forEach((input) => {
-      try {
-        if (input.type === 'email' && fieldValues.email) {
-          input.value = fieldValues.email;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        if (input.type === 'tel' && fieldValues.phone) {
-          input.value = fieldValues.phone;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      } catch (error) {
-        console.error('Error in final input assignment:', error);
-      }
-    });
+    console.log('Form filling completed.');
   }
 });
