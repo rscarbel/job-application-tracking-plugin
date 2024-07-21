@@ -218,8 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const workMode = workModeInput.value;
     const payAmount = payAmountInput.value;
     const notes = notesInput.value;
-
-    // Collect values from additional fields
     const salaryRangeMax = salaryRangeMaxInput.value;
     const salaryRangeMin = salaryRangeMinInput.value;
     const workType = workTypeInput.value;
@@ -693,6 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
       requireSponsorship: [
         'require sponsorship',
         'sponsorship',
+        'sponsorship?',
         'need sponsorship',
         'require work sponsorship',
         'sponsorship required',
@@ -700,6 +699,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'work authorization sponsorship',
         'job sponsorship',
         'employment sponsorship',
+        'require visa sponsorship',
+        'requires visa sponsorship',
       ],
       state: [
         'state',
@@ -826,6 +827,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .toLowerCase();
           const nameAttr = input.getAttribute('name')?.trim().toLowerCase();
           const idAttr = input.getAttribute('id')?.trim().toLowerCase();
+          const ariaLabel = input
+            .getAttribute('aria-label')
+            ?.trim()
+            .toLowerCase();
 
           aliases.forEach((alias) => {
             if (placeholder && placeholder.includes(alias)) {
@@ -833,6 +838,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (nameAttr && nameAttr.includes(alias)) {
               fillInputField(input, value);
             } else if (idAttr && idAttr.includes(alias)) {
+              fillInputField(input, value);
+            } else if (ariaLabel && ariaLabel.includes(alias)) {
               fillInputField(input, value);
             }
           });
