@@ -8,6 +8,12 @@
       href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      crossorigin="anonymous"
+      onerror="this.onerror=null;this.href='path/to/local/font-awesome.min.css';"
+    />
     <style>
       body {
         font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana,
@@ -61,9 +67,16 @@
         color: #4f46e5;
         margin-bottom: 20px;
       }
+      small {
+        text-wrap: balance;
+      }
       textarea {
         resize: vertical;
         min-height: 100px;
+      }
+      i {
+        margin-right: 10px;
+        color: white;
       }
       input[type='text'],
       textarea {
@@ -137,6 +150,7 @@
         background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%234a90e2" d="M2 0L0 2h4zM2 5L0 3h4z"/></svg>');
         background-repeat: no-repeat;
         background-position: right 10px center;
+        cursor: pointer;
         background-size: 10px;
       }
       select:focus {
@@ -162,13 +176,16 @@
       label {
         text-align: left;
       }
+      .red-text {
+        color: red;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <button class="close-button" id="closeButton">&times;</button>
       <div id="codeEntrySection">
-        <h2>Enter Your Access Key</h2>
+        <h1>Enter Your Access Key</h1>
         <input type="text" id="userCode" placeholder="Enter code here" />
         <small
           >If you have an account with our platform, get your
@@ -176,6 +193,7 @@
             href="https://job-application-tracking-dev.vercel.app/settings?tab=manage-personal-info"
             >access key here.</a
           >
+          It is completely free.
         </small>
         <br /><br />
         <small
@@ -185,25 +203,30 @@
             href="https://job-application-tracking-dev.vercel.app/api/auth/signin"
             >login here.</a
           >
+          This is also completely free.
         </small>
         <br /><br />
         <button class="claymorphic-shadow" id="saveCode">
-          Save Access Key
+          <i class="fas fa-save"></i> Save Access Key
         </button>
       </div>
       <div id="actionSection" class="actionSection hidden">
         <h2>Job Application Tracking</h2>
         <button class="claymorphic-shadow" id="fillApplication">
-          Fill Out Application
+          <i class="fas fa-edit"></i> Fill Out Application
         </button>
         <button class="claymorphic-shadow" id="logApplication">
-          Log Application
+          <i class="fas fa-clipboard-list"></i> Log Application
         </button>
-        <button class="claymorphic-shadow" id="clearCode">Forget me</button>
+        <button class="claymorphic-shadow" id="clearCode">
+          <i class="fa-solid fa-user-lock"></i> Forget me
+        </button>
       </div>
       <div id="logApplicationSection" class="hidden">
         <h2>Log Job Application</h2>
-        <label for="companyName">Company Name *</label>
+        <label for="companyName"
+          >Company Name <span class="red-text">*</span></label
+        >
         <input
           required
           type="text"
@@ -211,7 +234,7 @@
           name="companyName"
           maxlength="255"
         />
-        <label for="jobName">Job Name *</label>
+        <label for="jobName">Job Name <span class="red-text">*</span></label>
         <input
           required
           type="text"
@@ -408,19 +431,22 @@
             <option value="OTHER">Other</option>
           </select>
         </div>
-        <button id="showEvenMoreFields" class="hidden form-button">
-          Even More Fields...
+        <button
+          id="showEvenMoreFields"
+          class="hidden form-button claymorphic-shadow"
+        >
+          <i class="fas fa-plus"></i> Even More Fields...
         </button>
-        <button class="form-button" id="showMoreFields">
-          Show More Fields
+        <button class="form-button claymorphic-shadow" id="showMoreFields">
+          <i class="fas fa-plus"></i> Show More Fields
         </button>
         <button
-          class="form-button"
+          class="form-button claymorphic-shadow"
           class="claymorphic-shadow"
           disabled
           id="submitApplication"
         >
-          Submit
+          <i class="fas fa-paper-plane"></i> Submit
         </button>
       </div>
     </div>

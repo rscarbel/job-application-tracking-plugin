@@ -72,11 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
   showExtraFieldsButton.addEventListener('click', () => {
     if (extraFields.classList.contains('hidden')) {
       extraFields.classList.remove('hidden');
-      showExtraFieldsButton.textContent = 'Hide extra fields';
+      showExtraFieldsButton.innerHTML =
+        '<i class="fas fa-minus"></i> Hide extra fields';
       showEvenMoreFieldsButton.classList.remove('hidden');
     } else {
       extraFields.classList.add('hidden');
-      showExtraFieldsButton.textContent = 'Show more fields';
+      showExtraFieldsButton.innerHTML =
+        '<i class="fas fa-plus"></i> Show more fields';
       showEvenMoreFieldsButton.classList.add('hidden');
       if (!evenMoreHiddenFields.classList.contains('hidden')) {
         evenMoreHiddenFields.classList.add('hidden');
@@ -119,7 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const userCode = userCodeInput.value;
     if (userCode) {
       saveCodeButton.disabled = true;
-      saveCodeButton.textContent = 'Loading...';
+      saveCodeButton.innerHTML =
+        '<i class="fa-solid fa-spinner"></i> Loading...';
       chrome.storage.sync.set({ userCode: userCode }, async () => {
         resizePopup();
       });
@@ -132,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       codeEntrySection.classList.add('hidden');
       actionSection.classList.remove('hidden');
       saveCodeButton.disabled = false;
-      saveCodeButton.textContent = 'Save Access Key';
+      saveCodeButton.innerHTML = '<i class="fas fa-save"></i> Save Access Key';
     } else {
       alert('Please enter an access code.');
     }
@@ -145,13 +148,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       fillApplicationButton.disabled = true;
-      fillApplicationButton.textContent = 'Filling out application...';
+      fillApplicationButton.innerHTML =
+        '<i class="fa-solid fa-spinner"></i> Filling out application...';
       const personalInformation = await fetchPersonalInformation(
         result.userCode
       );
       if (!personalInformation) {
         fillApplicationButton.disabled = false;
-        fillApplicationButton.textContent = 'Fill Out Application';
+        fillApplicationButton.innerHTML =
+          '<i class="fas fa-edit"></i> Fill Out Application';
         return;
       }
       chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
@@ -164,17 +169,20 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(() => {
               fillApplicationButton.disabled = false;
-              fillApplicationButton.textContent = 'Fill Out Application';
+              fillApplicationButton.innerHTML =
+                '<i class="fas fa-edit"></i> Fill Out Application';
             })
             .catch((error) => {
               console.error('Error filling out the page:', error);
               fillApplicationButton.disabled = false;
-              fillApplicationButton.textContent = 'Fill Out Application';
+              fillApplicationButton.innerHTML =
+                '<i class="fas fa-edit"></i> Fill Out Application';
             });
         } else {
           console.error('No active tab found.');
           fillApplicationButton.disabled = false;
-          fillApplicationButton.textContent = 'Fill Out Application';
+          fillApplicationButton.innerHTML =
+            '<i class="fas fa-edit"></i> Fill Out Application';
         }
       });
     });
@@ -182,13 +190,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   clearCodeButton.addEventListener('click', () => {
     clearCodeButton.disabled = true;
-    clearCodeButton.textContent = 'Loading...';
+    clearCodeButton.innerHTML =
+      '<i class="fa-solid fa-spinner"></i> Loading...';
     chrome.storage.sync.remove('userCode', () => {
       codeEntrySection.classList.remove('hidden');
       actionSection.classList.add('hidden');
       resizePopup();
       clearCodeButton.disabled = false;
-      clearCodeButton.textContent = 'Clear My Info';
+      clearCodeButton.innerHTML =
+        '<i class="fa-solid fa-user-lock"></i> Forget me';
     });
   });
 
@@ -226,7 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (companyName && jobName) {
       submitApplicationButton.disabled = true;
-      submitApplicationButton.textContent = 'Loading...';
+      submitApplicationButton.innerHTML =
+        '<i class="fa-solid fa-spinner"></i> Loading...';
       chrome.storage.sync.get('userCode', (result) => {
         const userCode = result.userCode;
         if (userCode) {
@@ -271,14 +282,16 @@ document.addEventListener('DOMContentLoaded', () => {
                   window.close();
                 }
                 submitApplicationButton.disabled = false;
-                submitApplicationButton.textContent = 'Submit';
+                submitApplicationButton.innerHTML =
+                  ' <i class="fas fa-paper-plane"></i> Submit';
               }
             }
           );
         } else {
           alert('User code not found. Please enter your code again.');
           submitApplicationButton.disabled = false;
-          submitApplicationButton.textContent = 'Submit';
+          submitApplicationButton.innerHTML =
+            ' <i class="fas fa-paper-plane"></i> Submit';
         }
       });
     } else {
