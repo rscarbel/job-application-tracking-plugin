@@ -20,6 +20,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const extraFields = document.getElementById('extraFields');
   const payErrorMessage = document.getElementById('pay-error-message');
   const closeButton = document.getElementById('closeButton');
+  const notesInput = document.getElementById('notes');
+  const evenMoreHiddenFields = document.getElementById(
+    'even-more-extra-fields'
+  );
+  const showEvenMoreFieldsButton =
+    document.getElementById('showEvenMoreFields');
+  const salaryRangeMaxInput = document.getElementById('salaryRangeMax');
+  const salaryRangeMinInput = document.getElementById('salaryRangeMin');
+  const workTypeInput = document.getElementById('workType');
+  const industryInput = document.getElementById('industry');
+  const companySizeInput = document.getElementById('companySize');
+  const companyTypeInput = document.getElementById('companyType');
+  const companyDesirabilityInput = document.getElementById(
+    'companyDesireability'
+  );
+  const companyWebsiteInput = document.getElementById('companyWebsite');
+  const companyLinkedinInput = document.getElementById('companyLinkedin');
+  const streetAddressInput = document.getElementById('streetAddress');
+  const streetAddress2Input = document.getElementById('streetAddress2');
+  const postalCodeInput = document.getElementById('postalCode');
+  const countryInput = document.getElementById('country');
+  const jobDescriptionInput = document.getElementById('jobDescription');
+  const payFrequencyInput = document.getElementById('payFrequency');
 
   function resizePopup() {
     const container = document.querySelector('.container');
@@ -50,10 +73,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (extraFields.classList.contains('hidden')) {
       extraFields.classList.remove('hidden');
       showExtraFieldsButton.textContent = 'Hide extra fields';
+      showEvenMoreFieldsButton.classList.remove('hidden');
     } else {
       extraFields.classList.add('hidden');
-      showExtraFieldsButton.textContent = 'Show extra fields';
+      showExtraFieldsButton.textContent = 'Show more fields';
+      showEvenMoreFieldsButton.classList.add('hidden');
+      if (!evenMoreHiddenFields.classList.contains('hidden')) {
+        evenMoreHiddenFields.classList.add('hidden');
+      }
+      [
+        cityInput,
+        stateInput,
+        workModeInput,
+        payAmountInput,
+        notesInput,
+        salaryRangeMaxInput,
+        salaryRangeMinInput,
+        workTypeInput,
+        industryInput,
+        companySizeInput,
+        companyTypeInput,
+        companyDesirabilityInput,
+        companyWebsiteInput,
+        companyLinkedinInput,
+        streetAddressInput,
+        streetAddress2Input,
+        postalCodeInput,
+        countryInput,
+        jobDescriptionInput,
+        payFrequencyInput,
+      ].forEach((input) => {
+        input.value = '';
+      });
     }
+    resizePopup();
+  });
+
+  showEvenMoreFieldsButton.addEventListener('click', () => {
+    evenMoreHiddenFields.classList.remove('hidden');
+    showEvenMoreFieldsButton.classList.add('hidden');
     resizePopup();
   });
 
@@ -147,6 +205,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = stateInput.value;
     const workMode = workModeInput.value;
     const payAmount = payAmountInput.value;
+    const notes = notesInput.value;
+
+    // Collect values from additional fields
+    const salaryRangeMax = salaryRangeMaxInput.value;
+    const salaryRangeMin = salaryRangeMinInput.value;
+    const workType = workTypeInput.value;
+    const industry = industryInput.value;
+    const companySize = companySizeInput.value;
+    const companyType = companyTypeInput.value;
+    const companyDesirability = companyDesirabilityInput.value;
+    const companyWebsite = companyWebsiteInput.value;
+    const companyLinkedin = companyLinkedinInput.value;
+    const streetAddress = streetAddressInput.value;
+    const streetAddress2 = streetAddress2Input.value;
+    const postalCode = postalCodeInput.value;
+    const country = countryInput.value;
+    const jobDescription = jobDescriptionInput.value;
+    const payFrequency = payFrequencyInput.value;
 
     if (companyName && jobName) {
       submitApplicationButton.disabled = true;
@@ -165,10 +241,26 @@ document.addEventListener('DOMContentLoaded', () => {
                   jobName,
                   applicationURL,
                   userCode,
-                  city,
-                  state,
-                  workMode,
-                  payAmount,
+                  ...(city && { city }),
+                  ...(state && { state }),
+                  ...(workMode && { workMode }),
+                  ...(payAmount && { payAmount }),
+                  ...(notes && { notes }),
+                  ...(salaryRangeMax && { salaryRangeMax }),
+                  ...(salaryRangeMin && { salaryRangeMin }),
+                  ...(workType && { workType }),
+                  ...(industry && { industry }),
+                  ...(companySize && { companySize }),
+                  ...(companyType && { companyType }),
+                  ...(companyDesirability && { companyDesirability }),
+                  ...(companyWebsite && { companyWebsite }),
+                  ...(companyLinkedin && { companyLinkedin }),
+                  ...(streetAddress && { streetAddress }),
+                  ...(streetAddress2 && { streetAddress2 }),
+                  ...(postalCode && { postalCode }),
+                  ...(country && { country }),
+                  ...(jobDescription && { jobDescription }),
+                  ...(payFrequency && { payFrequency }),
                 };
                 const isSuccessful = await logJobApplication(payload);
                 if (isSuccessful) {
