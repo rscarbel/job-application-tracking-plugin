@@ -774,6 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'currentTitle',
       'expectedSalary',
     ];
+
     const fillInputByLabel = (labelText, value) => {
       try {
         allLabels.forEach((label) => {
@@ -787,6 +788,9 @@ document.addEventListener('DOMContentLoaded', () => {
                   Array.from(input.options).forEach((option) => {
                     if (option.text.toLowerCase() === value.toLowerCase()) {
                       input.value = option.value;
+                      input.dispatchEvent(
+                        new Event('change', { bubbles: true })
+                      );
                     }
                   });
                 } else if (input.type === 'radio') {
@@ -797,9 +801,12 @@ document.addEventListener('DOMContentLoaded', () => {
                   );
                   if (radio) {
                     radio.checked = true;
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 } else {
                   input.value = value;
+                  input.dispatchEvent(new Event('input', { bubbles: true }));
+                  input.dispatchEvent(new Event('blur', { bubbles: true }));
                 }
               } else {
                 const radios =
@@ -807,6 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 radios.forEach((radio) => {
                   if (radio.value.toLowerCase() === value.toLowerCase()) {
                     radio.checked = true;
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               }
@@ -831,6 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Array.from(input.options).forEach((option) => {
                   if (option.text.toLowerCase() === value.toLowerCase()) {
                     input.value = option.value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               } else if (input.type === 'radio') {
@@ -839,9 +848,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
                 if (radio) {
                   radio.checked = true;
+                  radio.dispatchEvent(new Event('change', { bubbles: true }));
                 }
               } else {
                 input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('blur', { bubbles: true }));
               }
             }
           });
@@ -861,6 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Array.from(input.options).forEach((option) => {
                   if (option.text.toLowerCase() === value.toLowerCase()) {
                     input.value = option.value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               } else if (input.type === 'radio') {
@@ -869,9 +882,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
                 if (radio) {
                   radio.checked = true;
+                  radio.dispatchEvent(new Event('change', { bubbles: true }));
                 }
               } else {
                 input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('blur', { bubbles: true }));
               }
             }
           });
@@ -891,6 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Array.from(input.options).forEach((option) => {
                   if (option.text.toLowerCase() === value.toLowerCase()) {
                     input.value = option.value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               } else if (input.type === 'radio') {
@@ -899,9 +916,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
                 if (radio) {
                   radio.checked = true;
+                  radio.dispatchEvent(new Event('change', { bubbles: true }));
                 }
               } else {
                 input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('blur', { bubbles: true }));
               }
             }
           });
@@ -910,19 +930,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error in fillInputById:', error);
       }
     };
+
     const fillInputByLabelIncludes = (labelText, value) => {
       try {
         allLabels.forEach((label) => {
           const formText = label.textContent.trim().toLowerCase();
           labelText.forEach((text) => {
-            if (formText === 'address') {
-              const inputId = label.getAttribute('for');
-              const input = document.getElementById(inputId);
-              if (input) {
-                input.value = fieldValues.currentLocation;
-                return;
-              }
-            }
             if (formText.includes(text)) {
               const inputId = label.getAttribute('for');
               const input = document.getElementById(inputId);
@@ -931,6 +944,9 @@ document.addEventListener('DOMContentLoaded', () => {
                   Array.from(input.options).forEach((option) => {
                     if (option.text.toLowerCase() === value.toLowerCase()) {
                       input.value = option.value;
+                      input.dispatchEvent(
+                        new Event('change', { bubbles: true })
+                      );
                     }
                   });
                 } else if (input.type === 'radio') {
@@ -941,9 +957,12 @@ document.addEventListener('DOMContentLoaded', () => {
                   );
                   if (radio) {
                     radio.checked = true;
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 } else {
                   input.value = value;
+                  input.dispatchEvent(new Event('input', { bubbles: true }));
+                  input.dispatchEvent(new Event('blur', { bubbles: true }));
                 }
               } else {
                 const radios =
@@ -951,6 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 radios.forEach((radio) => {
                   if (radio.value.toLowerCase() === value.toLowerCase()) {
                     radio.checked = true;
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               }
@@ -958,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         });
       } catch (error) {
-        console.error('Error in fillInputByLabel:', error);
+        console.error('Error in fillInputByLabelIncludes:', error);
       }
     };
 
@@ -975,6 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Array.from(input.options).forEach((option) => {
                   if (option.text.toLowerCase() === value.toLowerCase()) {
                     input.value = option.value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               } else if (input.type === 'radio') {
@@ -983,15 +1004,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
                 if (radio) {
                   radio.checked = true;
+                  radio.dispatchEvent(new Event('change', { bubbles: true }));
                 }
               } else {
                 input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('blur', { bubbles: true }));
               }
             }
           });
         });
       } catch (error) {
-        console.error('Error in fillInputByPlaceholder:', error);
+        console.error('Error in fillInputByPlaceholderIncludes:', error);
       }
     };
 
@@ -1005,6 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Array.from(input.options).forEach((option) => {
                   if (option.text.toLowerCase() === value.toLowerCase()) {
                     input.value = option.value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               } else if (input.type === 'radio') {
@@ -1013,19 +1038,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
                 if (radio) {
                   radio.checked = true;
+                  radio.dispatchEvent(new Event('change', { bubbles: true }));
                 }
               } else {
-                if (input.name === 'address') {
-                  input.value = fieldValues.currentLocation;
-                } else {
-                  input.value = value;
-                }
+                input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('blur', { bubbles: true }));
               }
             }
           });
         });
       } catch (error) {
-        console.error('Error in fillInputByName:', error);
+        console.error('Error in fillInputByNameIncludes:', error);
       }
     };
 
@@ -1039,6 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Array.from(input.options).forEach((option) => {
                   if (option.text.toLowerCase() === value.toLowerCase()) {
                     input.value = option.value;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 });
               } else if (input.type === 'radio') {
@@ -1047,15 +1072,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
                 if (radio) {
                   radio.checked = true;
+                  radio.dispatchEvent(new Event('change', { bubbles: true }));
                 }
               } else {
                 input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('blur', { bubbles: true }));
               }
             }
           });
         });
       } catch (error) {
-        console.error('Error in fillInputById:', error);
+        console.error('Error in fillInputByIdIncludes:', error);
       }
     };
 
@@ -1085,9 +1113,11 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         if (input.type === 'email' && fieldValues.email) {
           input.value = fieldValues.email;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
         }
         if (input.type === 'tel' && fieldValues.phone) {
           input.value = fieldValues.phone;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
         }
       } catch (error) {
         console.error('Error in final input assignment:', error);
