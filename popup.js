@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const countryInput = document.getElementById('country');
   const jobDescriptionInput = document.getElementById('jobDescription');
   const payFrequencyInput = document.getElementById('payFrequency');
+  const backToMenuButton = document.getElementById('backToMenu');
+  const createAccountButton = document.getElementById('createAccountBtn');
+  const getAccessKeyButton = document.getElementById('getAccessKeyBtn');
 
   function resizePopup() {
     const container = document.querySelector('.container');
@@ -111,31 +114,85 @@ document.addEventListener('DOMContentLoaded', () => {
     resizePopup();
   });
 
+  createAccountButton.addEventListener('click', () => {
+    chrome.tabs.create({
+      url: 'https://job-application-tracking-dev.vercel.app/',
+    });
+  });
+
+  getAccessKeyButton.addEventListener('click', () => {
+    chrome.tabs.create({
+      url: 'https://job-application-tracking-dev.vercel.app/settings?tab=manage-personal-info',
+    });
+  });
+
   showEvenMoreFieldsButton.addEventListener('click', () => {
     evenMoreHiddenFields.classList.remove('hidden');
     showEvenMoreFieldsButton.classList.add('hidden');
     resizePopup();
   });
 
+  backToMenuButton.addEventListener('click', () => {
+    logApplicationSection.classList.add('hidden');
+    actionSection.classList.remove('hidden');
+    [
+      companyNameInput,
+      jobNameInput,
+      cityInput,
+      stateInput,
+      workModeInput,
+      payAmountInput,
+      notesInput,
+      salaryRangeMaxInput,
+      salaryRangeMinInput,
+      workTypeInput,
+      industryInput,
+      companySizeInput,
+      companyTypeInput,
+      companyDesirabilityInput,
+      companyWebsiteInput,
+      companyLinkedinInput,
+      streetAddressInput,
+      streetAddress2Input,
+      postalCodeInput,
+      countryInput,
+      jobDescriptionInput,
+      payFrequencyInput,
+    ].forEach((input) => {
+      input.value = '';
+    });
+    resizePopup();
+  });
+
+  userCodeInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      saveCodeButton.click();
+    }
+  });
+
   saveCodeButton.addEventListener('click', async () => {
     const userCode = userCodeInput.value;
     if (userCode) {
       saveCodeButton.disabled = true;
-      saveCodeButton.innerHTML =
-        '<i class="fa-solid fa-spinner"></i> Loading...';
-      chrome.storage.sync.set({ userCode: userCode }, async () => {
-        resizePopup();
-      });
+      saveCodeButton.innerHTML = '<i class="fa-solid fa-spinner"></i>';
       const personalInformation = await fetchPersonalInformation(userCode);
       if (!personalInformation) {
         alert(
           'Failed to fetch personal information. Please enter your code again.'
         );
+        saveCodeButton.disabled = false;
+        saveCodeButton.innerHTML =
+          '<i class="fas fa-sign-in-alt color-white"></i>';
+        return;
       }
+      chrome.storage.sync.set({ userCode: userCode }, async () => {
+        resizePopup();
+      });
       codeEntrySection.classList.add('hidden');
       actionSection.classList.remove('hidden');
       saveCodeButton.disabled = false;
-      saveCodeButton.innerHTML = '<i class="fas fa-save"></i> Save Access Key';
+      saveCodeButton.innerHTML =
+        '<i class="fas fa-sign-in-alt color-white"></i>';
     } else {
       alert('Please enter an access code.');
     }
@@ -322,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchPersonalInformation(userCode) {
-    const url = `https://job-application-tracking-dev.vercel.app/api/plugin/getPersonalInformation?userCode=${userCode}`;
+    const url = `https://job-application-tracking-dev.vercel.app/api/plugin/getPersonalInformation/v1?userCode=${userCode}`;
     try {
       const response = await fetch(url);
       if (response.status === 200) {
@@ -340,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function logJobApplication(payload) {
     const url =
-      'https://job-application-tracking-dev.vercel.app/api/plugin/logApplication';
+      'https://job-application-tracking-dev.vercel.app/api/plugin/logApplication/v1';
     try {
       const response = await fetch(url, {
         method: 'POST',

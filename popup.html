@@ -25,6 +25,7 @@
         align-items: center;
         height: 100vh;
         margin: 0;
+        min-width: 430px;
         text-wrap: balance;
       }
       .container {
@@ -74,8 +75,10 @@
         resize: vertical;
         min-height: 100px;
       }
-      i {
+      .mr-10 {
         margin-right: 10px;
+      }
+      .color-white {
         color: white;
       }
       input[type='text'],
@@ -170,14 +173,76 @@
         transform: none;
         box-shadow: none;
       }
-      .form-button {
+      .width-full {
         width: 100%;
+      }
+      .w-49 {
+        width: 49%;
+      }
+      .claymorphic-shadow:active,
+      #backToMenu:active {
+        transform: translateY(0px);
+        box-shadow: 6px 6px 20px 0px rgba(170, 170, 170, 0.5),
+          inset -2px -2px 4px 0px rgba(112, 112, 112, 0.6),
+          inset 0px 3px 7px 0px rgb(149, 149, 149);
+        backdrop-filter: blur(5px);
       }
       label {
         text-align: left;
       }
       .red-text {
         color: red;
+      }
+      #backToMenu {
+        background-color: #fff;
+        color: #5f5f5f;
+        border: 2px solid #5f5f5f;
+        border-radius: 18px;
+      }
+      #backToMenu:hover {
+        background-color: #f4f4f9;
+      }
+      .flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        align-content: center;
+      }
+      .m-auto {
+        margin: auto;
+      }
+      .input-box {
+        height: 20px;
+        width: 100%;
+        max-width: 280px;
+        font-size: 16px;
+        padding: 14px;
+        margin-bottom: 0px;
+        margin-right: 10px;
+      }
+      button.input-box {
+        background-color: #15803d;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #saveCode {
+        height: 48px;
+        width: 48px;
+        padding: 12px 26px;
+        margin-top: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .save-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
       }
     </style>
   </head>
@@ -186,40 +251,43 @@
       <button class="close-button" id="closeButton">&times;</button>
       <div id="codeEntrySection">
         <h1>Enter Your Access Key</h1>
-        <input type="text" id="userCode" placeholder="Enter code here" />
-        <small
-          >If you have an account with our platform, get your
-          <a
-            href="https://job-application-tracking-dev.vercel.app/settings?tab=manage-personal-info"
-            >access key here.</a
-          >
-          It is completely free.
-        </small>
-        <br /><br />
-        <small
-          >If you do not have an account with our platform, create an account by
-          going to
-          <a
-            href="https://job-application-tracking-dev.vercel.app/api/auth/signin"
-            >login here.</a
-          >
-          This is also completely free.
-        </small>
-        <br /><br />
-        <button class="claymorphic-shadow" id="saveCode">
-          <i class="fas fa-save"></i> Save Access Key
-        </button>
+        <div class="save-container">
+          <input
+            type="text"
+            id="userCode"
+            class="input-box m-auto"
+            aria-label="access key"
+            placeholder="Enter access key here"
+          />
+          <button class="claymorphic-shadow m-auto" id="saveCode">
+            <i class="fas fa-sign-in-alt color-white"></i>
+          </button>
+        </div>
+        <br />
+        <h2>
+          Don't have an account yet? Have an account, but don't have an access
+          key?
+        </h2>
+        <div className="flex">
+          <button class="claymorphic-shadow" id="createAccountBtn">
+            Create Account
+          </button>
+          <button class="claymorphic-shadow" id="getAccessKeyBtn">
+            Get Access Key
+          </button>
+        </div>
       </div>
       <div id="actionSection" class="actionSection hidden">
         <h2>Job Application Tracking</h2>
         <button class="claymorphic-shadow" id="fillApplication">
-          <i class="fas fa-edit"></i> Fill Out Application
+          <i class="fas fa-edit mr-10 color-white"></i> Fill Out Application
         </button>
         <button class="claymorphic-shadow" id="logApplication">
-          <i class="fas fa-clipboard-list"></i> Log Application
+          <i class="fas fa-clipboard-list mr-10 color-white"></i> Log
+          Application
         </button>
         <button class="claymorphic-shadow" id="clearCode">
-          <i class="fa-solid fa-user-lock"></i> Forget me
+          <i class="fa-solid fa-user-lock mr-10 color-white"></i> Forget me
         </button>
       </div>
       <div id="logApplicationSection" class="hidden">
@@ -433,21 +501,29 @@
         </div>
         <button
           id="showEvenMoreFields"
-          class="hidden form-button claymorphic-shadow"
+          class="hidden width-full claymorphic-shadow"
         >
-          <i class="fas fa-plus"></i> Even More Fields...
+          <i class="fas fa-plus mr-10 color-white"></i> Even More Fields...
         </button>
-        <button class="form-button claymorphic-shadow" id="showMoreFields">
-          <i class="fas fa-plus"></i> Show More Fields
+        <button class="width-full claymorphic-shadow" id="showMoreFields">
+          <i class="fas fa-plus mr-10 color-white"></i> Show More Fields
         </button>
-        <button
-          class="form-button claymorphic-shadow"
-          class="claymorphic-shadow"
-          disabled
-          id="submitApplication"
-        >
-          <i class="fas fa-paper-plane"></i> Submit
-        </button>
+        <div className="flex">
+          <button id="backToMenu" class="w-49">
+            <i
+              class="fas fa-arrow-left mr-10 color-white"
+              style="color: #5f5f5f"
+            ></i>
+            Back
+          </button>
+          <button
+            class="claymorphic-shadow w-49"
+            disabled
+            id="submitApplication"
+          >
+            <i class="fas fa-paper-plane mr-10 color-white"></i> Submit
+          </button>
+        </div>
       </div>
     </div>
     <script src="popup.js"></script>
