@@ -1,51 +1,56 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const codeEntrySection = document.getElementById('codeEntrySection');
   const actionSection = document.getElementById('actionSection');
-  const logApplicationSection = document.getElementById(
-    'logApplicationSection'
-  );
-  const userCodeInput = document.getElementById('userCode');
-  const saveCodeButton = document.getElementById('saveCode');
-  const fillApplicationButton = document.getElementById('fillApplication');
-  const clearCodeButton = document.getElementById('clearCode');
-  const logApplicationButton = document.getElementById('logApplication');
-  const submitApplicationButton = document.getElementById('submitApplication');
-  const companyNameInput = document.getElementById('companyName');
-  const jobNameInput = document.getElementById('jobName');
+  const backToMenuButton = document.getElementById('backToMenu');
   const cityInput = document.getElementById('city');
-  const stateInput = document.getElementById('state');
-  const workModeInput = document.getElementById('workMode');
-  const payAmountInput = document.getElementById('payAmount');
-  const showExtraFieldsButton = document.getElementById('showMoreFields');
-  const extraFields = document.getElementById('extraFields');
-  const payErrorMessage = document.getElementById('pay-error-message');
+  const clearCodeButton = document.getElementById('clearCode');
   const closeButton = document.getElementById('closeButton');
-  const notesInput = document.getElementById('notes');
-  const evenMoreHiddenFields = document.getElementById(
-    'even-more-extra-fields'
-  );
-  const showEvenMoreFieldsButton =
-    document.getElementById('showEvenMoreFields');
-  const salaryRangeMaxInput = document.getElementById('salaryRangeMax');
-  const salaryRangeMinInput = document.getElementById('salaryRangeMin');
-  const workTypeInput = document.getElementById('workType');
-  const industryInput = document.getElementById('industry');
-  const companySizeInput = document.getElementById('companySize');
-  const companyTypeInput = document.getElementById('companyType');
+  const codeEntrySection = document.getElementById('codeEntrySection');
   const companyDesirabilityInput = document.getElementById(
     'companyDesireability'
   );
-  const companyWebsiteInput = document.getElementById('companyWebsite');
   const companyLinkedinInput = document.getElementById('companyLinkedin');
-  const streetAddressInput = document.getElementById('streetAddress');
-  const streetAddress2Input = document.getElementById('streetAddress2');
-  const postalCodeInput = document.getElementById('postalCode');
+  const companyNameInput = document.getElementById('companyName');
+  const companySizeInput = document.getElementById('companySize');
+  const companyTypeInput = document.getElementById('companyType');
+  const companyWebsiteInput = document.getElementById('companyWebsite');
   const countryInput = document.getElementById('country');
-  const jobDescriptionInput = document.getElementById('jobDescription');
-  const payFrequencyInput = document.getElementById('payFrequency');
-  const backToMenuButton = document.getElementById('backToMenu');
   const createAccountButton = document.getElementById('createAccountBtn');
+  const evenMoreHiddenFields = document.getElementById(
+    'even-more-extra-fields'
+  );
+  const existingJobsList = document.getElementById('existingJobsList');
+  const existingJobsSection = document.getElementById('existingJobs');
+  const extraFields = document.getElementById('extraFields');
+  const fillApplicationButton = document.getElementById('fillApplication');
   const getAccessKeyButton = document.getElementById('getAccessKeyBtn');
+  const industryInput = document.getElementById('industry');
+  const jobDescriptionInput = document.getElementById('jobDescription');
+  const jobNameInput = document.getElementById('jobName');
+  const logApplicationButton = document.getElementById('logApplication');
+  const logApplicationSection = document.getElementById(
+    'logApplicationSection'
+  );
+  const notesInput = document.getElementById('notes');
+  const payAmountInput = document.getElementById('payAmount');
+  const payErrorMessage = document.getElementById('pay-error-message');
+  const payFrequencyInput = document.getElementById('payFrequency');
+  const postalCodeInput = document.getElementById('postalCode');
+  const salaryRangeMaxInput = document.getElementById('salaryRangeMax');
+  const salaryRangeMinInput = document.getElementById('salaryRangeMin');
+  const saveCodeButton = document.getElementById('saveCode');
+  const showEvenMoreFieldsButton =
+    document.getElementById('showEvenMoreFields');
+  const showExtraFieldsButton = document.getElementById('showMoreFields');
+  const sourceInput = document.getElementById('source');
+  const stateInput = document.getElementById('state');
+  const streetAddress2Input = document.getElementById('streetAddress2');
+  const streetAddressInput = document.getElementById('streetAddress');
+  const submitApplicationButton = document.getElementById('submitApplication');
+  const userCodeInput = document.getElementById('userCode');
+  const workModeInput = document.getElementById('workMode');
+  const workTypeInput = document.getElementById('workType');
+
+  let cachedCompanyNames = null;
 
   function resizePopup() {
     const container = document.querySelector('.container');
@@ -54,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   closeButton.addEventListener('click', () => {
+    cachedCompanyNames = null;
     window.close();
   });
 
@@ -72,6 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
   companyNameInput.addEventListener('input', validateForm);
   jobNameInput.addEventListener('input', validateForm);
 
+  companyNameInput.addEventListener(
+    'input',
+    debounce(async () => {
+      const userCode = (await chrome.storage.sync.get('userCode')).userCode;
+      if (!cachedCompanyNames && userCode) {
+        cachedCompanyNames = await fetchCompanyNames(userCode);
+      }
+      const companyName = companyNameInput.value.trim();
+      checkForExistingJobs(companyName);
+    }, 300)
+  );
+
   showExtraFieldsButton.addEventListener('click', () => {
     if (extraFields.classList.contains('hidden')) {
       extraFields.classList.remove('hidden');
@@ -88,25 +106,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       [
         cityInput,
-        stateInput,
-        workModeInput,
-        payAmountInput,
-        notesInput,
-        salaryRangeMaxInput,
-        salaryRangeMinInput,
-        workTypeInput,
-        industryInput,
+        companyDesirabilityInput,
+        companyLinkedinInput,
         companySizeInput,
         companyTypeInput,
-        companyDesirabilityInput,
         companyWebsiteInput,
-        companyLinkedinInput,
-        streetAddressInput,
-        streetAddress2Input,
-        postalCodeInput,
         countryInput,
+        industryInput,
         jobDescriptionInput,
+        notesInput,
+        payAmountInput,
         payFrequencyInput,
+        postalCodeInput,
+        salaryRangeMaxInput,
+        salaryRangeMinInput,
+        sourceInput,
+        stateInput,
+        streetAddress2Input,
+        streetAddressInput,
+        workModeInput,
+        workTypeInput,
       ].forEach((input) => {
         input.value = '';
       });
@@ -136,31 +155,33 @@ document.addEventListener('DOMContentLoaded', () => {
     logApplicationSection.classList.add('hidden');
     actionSection.classList.remove('hidden');
     [
-      companyNameInput,
-      jobNameInput,
       cityInput,
-      stateInput,
-      workModeInput,
-      payAmountInput,
-      notesInput,
-      salaryRangeMaxInput,
-      salaryRangeMinInput,
-      workTypeInput,
-      industryInput,
+      companyDesirabilityInput,
+      companyLinkedinInput,
+      companyNameInput,
       companySizeInput,
       companyTypeInput,
-      companyDesirabilityInput,
       companyWebsiteInput,
-      companyLinkedinInput,
-      streetAddressInput,
-      streetAddress2Input,
-      postalCodeInput,
       countryInput,
+      industryInput,
       jobDescriptionInput,
+      jobNameInput,
+      notesInput,
+      payAmountInput,
       payFrequencyInput,
+      postalCodeInput,
+      salaryRangeMaxInput,
+      salaryRangeMinInput,
+      sourceInput,
+      stateInput,
+      streetAddress2Input,
+      streetAddressInput,
+      workModeInput,
+      workTypeInput,
     ].forEach((input) => {
       input.value = '';
     });
+    cachedCompanyNames = null;
     resizePopup();
   });
 
@@ -263,33 +284,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
   logApplicationButton.addEventListener('click', () => {
     actionSection.classList.add('hidden');
+    cachedCompanyNames = null;
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (tab) {
+        const url = new URL(tab.url);
+        sourceInput.value = getWebsiteHostDisplayName(url.host);
+      }
+    });
+    logApplicationSection.classList.remove('hidden');
+    resizePopup();
+  });
+
+  logApplicationButton.addEventListener('click', () => {
+    actionSection.classList.add('hidden');
+    cachedCompanyNames = null;
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (tab) {
+        const url = new URL(tab.url);
+        sourceInput.value = getWebsiteHostDisplayName(url.host);
+      }
+    });
     logApplicationSection.classList.remove('hidden');
     resizePopup();
   });
 
   submitApplicationButton.addEventListener('click', async () => {
-    const companyName = companyNameInput.value;
-    const jobName = jobNameInput.value;
     const city = cityInput.value;
-    const state = stateInput.value;
-    const workMode = workModeInput.value;
-    const payAmount = payAmountInput.value;
-    const notes = notesInput.value;
-    const salaryRangeMax = salaryRangeMaxInput.value;
-    const salaryRangeMin = salaryRangeMinInput.value;
-    const workType = workTypeInput.value;
-    const industry = industryInput.value;
+    const companyDesirability = companyDesirabilityInput.value;
+    const companyLinkedin = companyLinkedinInput.value;
+    const companyName = companyNameInput.value;
     const companySize = companySizeInput.value;
     const companyType = companyTypeInput.value;
-    const companyDesirability = companyDesirabilityInput.value;
     const companyWebsite = companyWebsiteInput.value;
-    const companyLinkedin = companyLinkedinInput.value;
+    const country = countryInput.value;
+    const industry = industryInput.value;
+    const jobDescription = jobDescriptionInput.value;
+    const jobName = jobNameInput.value;
+    const notes = notesInput.value;
+    const payAmount = payAmountInput.value;
+    const payFrequency = payFrequencyInput.value;
+    const postalCode = postalCodeInput.value;
+    const salaryRangeMax = salaryRangeMaxInput.value;
+    const salaryRangeMin = salaryRangeMinInput.value;
+    const source = sourceInput.value;
+    const state = stateInput.value;
     const streetAddress = streetAddressInput.value;
     const streetAddress2 = streetAddress2Input.value;
-    const postalCode = postalCodeInput.value;
-    const country = countryInput.value;
-    const jobDescription = jobDescriptionInput.value;
-    const payFrequency = payFrequencyInput.value;
+    const workMode = workModeInput.value;
+    const workType = workTypeInput.value;
 
     if (companyName && jobName) {
       submitApplicationButton.disabled = true;
@@ -310,31 +356,33 @@ document.addEventListener('DOMContentLoaded', () => {
                   applicationURL,
                   userCode,
                   ...(city && { city }),
-                  ...(state && { state }),
-                  ...(workMode && { workMode }),
-                  ...(payAmount && { payAmount }),
-                  ...(notes && { notes }),
-                  ...(salaryRangeMax && { salaryRangeMax }),
-                  ...(salaryRangeMin && { salaryRangeMin }),
-                  ...(workType && { workType }),
-                  ...(industry && { industry }),
+                  ...(companyDesirability && { companyDesirability }),
+                  ...(companyLinkedin && { companyLinkedin }),
                   ...(companySize && { companySize }),
                   ...(companyType && { companyType }),
-                  ...(companyDesirability && { companyDesirability }),
                   ...(companyWebsite && { companyWebsite }),
-                  ...(companyLinkedin && { companyLinkedin }),
+                  ...(country && { country }),
+                  ...(industry && { industry }),
+                  ...(jobDescription && { jobDescription }),
+                  ...(notes && { notes }),
+                  ...(payAmount && { payAmount }),
+                  ...(payFrequency && { payFrequency }),
+                  ...(postalCode && { postalCode }),
+                  ...(salaryRangeMax && { salaryRangeMax }),
+                  ...(salaryRangeMin && { salaryRangeMin }),
+                  ...(source && { source }),
+                  ...(state && { state }),
                   ...(streetAddress && { streetAddress }),
                   ...(streetAddress2 && { streetAddress2 }),
-                  ...(postalCode && { postalCode }),
-                  ...(country && { country }),
-                  ...(jobDescription && { jobDescription }),
-                  ...(payFrequency && { payFrequency }),
+                  ...(workMode && { workMode }),
+                  ...(workType && { workType }),
                 };
                 const isSuccessful = await logJobApplication(payload);
                 if (isSuccessful) {
                   alert('Job application logged successfully!');
                   logApplicationSection.classList.add('hidden');
                   actionSection.classList.remove('hidden');
+                  cachedCompanyNames = null;
                   resizePopup();
                   window.close();
                 }
@@ -395,6 +443,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function fetchCompanyNames(userCode) {
+    const url = `https://job-application-tracking-dev.vercel.app/api/plugin/getCompanyNames/v1?userCode=${userCode}`;
+    try {
+      const response = await fetch(url);
+      if (response.status === 200) {
+        const companyNames = await response.json();
+        return companyNames;
+      } else {
+        console.log(
+          `Failed to fetch companyNames information. Error message: ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching company names:', error);
+    }
+  }
+
   async function logJobApplication(payload) {
     const url =
       'https://job-application-tracking-dev.vercel.app/api/plugin/logApplication/v1';
@@ -415,6 +480,211 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error logging job application:', error);
       return false;
     }
+  }
+
+  function checkForExistingJobs(companyName) {
+    if (!cachedCompanyNames) return;
+    const matchedCompany = cachedCompanyNames.find(
+      (company) =>
+        company.companyName.toLowerCase() === companyName.toLowerCase()
+    );
+
+    if (matchedCompany) {
+      existingJobsList.innerHTML = matchedCompany.jobs
+        .map((job) => `<li>${job}</li>`)
+        .join('');
+      existingJobsSection.classList.remove('hidden');
+    } else {
+      existingJobsList.innerHTML = '';
+      existingJobsSection.classList.add('hidden');
+    }
+    resizePopup();
+  }
+
+  // Debounce function to limit API calls
+  function debounce(fn, delay) {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        fn(...args);
+      }, delay);
+    };
+  }
+
+  function getWebsiteHostDisplayName(host) {
+    const knownSites = {
+      'www.linkedin.com': 'LinkedIn',
+      'linkedin.com': 'LinkedIn',
+      'www.indeed.com': 'Indeed',
+      'indeed.com': 'Indeed',
+      'www.workday.com': 'Workday',
+      'workday.com': 'Workday',
+      'www.glassdoor.com': 'Glassdoor',
+      'glassdoor.com': 'Glassdoor',
+      'www.monster.com': 'Monster',
+      'monster.com': 'Monster',
+      'www.simplyhired.com': 'SimplyHired',
+      'simplyhired.com': 'SimplyHired',
+      'www.ziprecruiter.com': 'ZipRecruiter',
+      'ziprecruiter.com': 'ZipRecruiter',
+      'www.careerbuilder.com': 'CareerBuilder',
+      'careerbuilder.com': 'CareerBuilder',
+      'www.snagajob.com': 'Snagajob',
+      'snagajob.com': 'Snagajob',
+      'www.flexjobs.com': 'FlexJobs',
+      'flexjobs.com': 'FlexJobs',
+      'www.roberthalf.com': 'Robert Half',
+      'roberthalf.com': 'Robert Half',
+      'www.job.com': 'Job.com',
+      'job.com': 'Job.com',
+      'www.upwork.com': 'Upwork',
+      'upwork.com': 'Upwork',
+      'www.fiverr.com': 'Fiverr',
+      'fiverr.com': 'Fiverr',
+      'www.remote.co': 'Remote.co',
+      'remote.co': 'Remote.co',
+      'www.remoteok.com': 'Remote OK',
+      'remoteok.com': 'Remote OK',
+      'www.angel.co': 'AngelList',
+      'angel.co': 'AngelList',
+      'www.theladders.com': 'The Ladders',
+      'theladders.com': 'The Ladders',
+      'www.hired.com': 'Hired',
+      'hired.com': 'Hired',
+      'www.dice.com': 'Dice',
+      'dice.com': 'Dice',
+      'www.builtin.com': 'Built In',
+      'builtin.com': 'Built In',
+      'www.guru.com': 'Guru',
+      'guru.com': 'Guru',
+      'www.beyond.com': 'Beyond',
+      'beyond.com': 'Beyond',
+      'www.startwire.com': 'StartWire',
+      'startwire.com': 'StartWire',
+      'www.jobs2careers.com': 'Jobs2Careers',
+      'jobs2careers.com': 'Jobs2Careers',
+      'www.ladders.com': 'Ladders',
+      'ladders.com': 'Ladders',
+      'www.remoteworkhub.com': 'Remote Work Hub',
+      'remoteworkhub.com': 'Remote Work Hub',
+      'www.wayup.com': 'WayUp',
+      'wayup.com': 'WayUp',
+      'www.collegegrad.com': 'CollegeGrad',
+      'collegegrad.com': 'CollegeGrad',
+      'www.usajobs.gov': 'USAJobs',
+      'usajobs.gov': 'USAJobs',
+      'www.devex.com': 'Devex',
+      'devex.com': 'Devex',
+      'www.idealist.org': 'Idealist',
+      'idealist.org': 'Idealist',
+      'www.mediabistro.com': 'Mediabistro',
+      'mediabistro.com': 'Mediabistro',
+      'www.authenticjobs.com': 'Authentic Jobs',
+      'authenticjobs.com': 'Authentic Jobs',
+      'www.toptal.com': 'Toptal',
+      'toptal.com': 'Toptal',
+      'www.freelancer.com': 'Freelancer',
+      'freelancer.com': 'Freelancer',
+      'www.naukri.com': 'Naukri',
+      'naukri.com': 'Naukri',
+      'www.shine.com': 'Shine',
+      'shine.com': 'Shine',
+      'www.efinancialcareers.com': 'eFinancialCareers',
+      'efinancialcareers.com': 'eFinancialCareers',
+      'www.craigslist.org': 'Craigslist',
+      'craigslist.org': 'Craigslist',
+      'www.bayt.com': 'Bayt',
+      'bayt.com': 'Bayt',
+      'www.jobstreet.com': 'JobStreet',
+      'jobstreet.com': 'JobStreet',
+      'www.reed.co.uk': 'Reed',
+      'reed.co.uk': 'Reed',
+      'www.totaljobs.com': 'Totaljobs',
+      'totaljobs.com': 'Totaljobs',
+      'www.cv-library.co.uk': 'CV-Library',
+      'cv-library.co.uk': 'CV-Library',
+      'www.adzuna.com': 'Adzuna',
+      'adzuna.com': 'Adzuna',
+      'www.cwjobs.co.uk': 'CWJobs',
+      'cwjobs.co.uk': 'CWJobs',
+      'www.jobserve.com': 'JobServe',
+      'jobserve.com': 'JobServe',
+      'www.techcareers.com': 'TechCareers',
+      'techcareers.com': 'TechCareers',
+      'www.thingamajob.com': 'Thingamajob',
+      'thingamajob.com': 'Thingamajob',
+      'www.rigzone.com': 'Rigzone',
+      'rigzone.com': 'Rigzone',
+      'www.dice.co.uk': 'Dice UK',
+      'dice.co.uk': 'Dice UK',
+      'www.ventureloop.com': 'VentureLoop',
+      'ventureloop.com': 'VentureLoop',
+      'www.jobsinnetwork.com': 'JobsInNetwork',
+      'jobsinnetwork.com': 'JobsInNetwork',
+      'www.healthcareers.com': 'HealthCareers',
+      'healthcareers.com': 'HealthCareers',
+      'www.environmentalcareer.com': 'Environmental Career',
+      'environmentalcareer.com': 'Environmental Career',
+      'www.devjobsscanner.com': 'DevJobsScanner',
+      'devjobsscanner.com': 'DevJobsScanner',
+      'www.aviationjobsearch.com': 'Aviation Job Search',
+      'aviationjobsearch.com': 'Aviation Job Search',
+      'www.tefl.com': 'TEFL',
+      'tefl.com': 'TEFL',
+      'www.careerbliss.com': 'CareerBliss',
+      'careerbliss.com': 'CareerBliss',
+      'www.getwork.com': 'Getwork',
+      'getwork.com': 'Getwork',
+      'www.jobcase.com': 'Jobcase',
+      'jobcase.com': 'Jobcase',
+      'www.wonderfuljobs.com': 'Wonderful Jobs',
+      'wonderfuljobs.com': 'Wonderful Jobs',
+      'www.fish4.co.uk': 'Fish4Jobs',
+      'fish4.co.uk': 'Fish4Jobs',
+      'www.hosco.com': 'Hosco',
+      'hosco.com': 'Hosco',
+      'www.thejobnetwork.com': 'TheJobNetwork',
+      'thejobnetwork.com': 'TheJobNetwork',
+      'www.jobsora.com': 'Jobsora',
+      'jobsora.com': 'Jobsora',
+      'www.glassdoor.co.uk': 'Glassdoor UK',
+      'glassdoor.co.uk': 'Glassdoor UK',
+      'www.jobisjob.co.uk': 'JobisJob',
+      'jobisjob.co.uk': 'JobisJob',
+      'www.jobrapido.com': 'Jobrapido',
+      'jobrapido.com': 'Jobrapido',
+      'www.recruit.net': 'Recruit.net',
+      'recruit.net': 'Recruit.net',
+      'www.jobtome.com': 'Jobtome',
+      'jobtome.com': 'Jobtome',
+      'www.talent.com': 'Talent.com',
+      'talent.com': 'Talent.com',
+      'www.neuvoo.com': 'Neuvoo',
+      'neuvoo.com': 'Neuvoo',
+      'www.jobleads.com': 'JobLeads',
+      'jobleads.com': 'JobLeads',
+      'www.glassdoor.de': 'Glassdoor Germany',
+      'glassdoor.de': 'Glassdoor Germany',
+    };
+
+    if (knownSites[host]) return knownSites[host];
+
+    if (host.startsWith('www.')) host = host.slice(4);
+    const parts = host.split('.');
+    if (parts.length > 3) {
+      host = parts.slice(0, -1).join('.');
+    } else if (parts.length === 3) {
+      host = parts[1];
+    } else if (parts.length === 2) {
+      host = parts[0];
+    }
+
+    return capitalizeFirstLetter(host);
+  }
+
+  function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
   resizePopup();

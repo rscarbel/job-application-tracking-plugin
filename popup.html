@@ -81,6 +81,9 @@
       .color-white {
         color: white;
       }
+      .color-red {
+        color: rgb(173, 0, 0);
+      }
       input[type='text'],
       textarea {
         width: calc(100% - 22px);
@@ -244,6 +247,10 @@
         align-items: center;
         align-content: center;
       }
+      #existingJobs {
+        text-align: left;
+        align-self: flex-start;
+      }
     </style>
   </head>
   <body>
@@ -292,6 +299,13 @@
       </div>
       <div id="logApplicationSection" class="hidden">
         <h2>Log Job Application</h2>
+        <div id="existingJobs" class="hidden">
+          <h4 style="margin: 0">
+            <i class="fas fa-triangle-exclamation mr-10 color-red"></i>You have
+            already applied to these jobs at this company
+          </h4>
+          <ul id="existingJobsList"></ul>
+        </div>
         <label for="companyName"
           >Company Name <span class="red-text">*</span></label
         >
@@ -303,13 +317,9 @@
           maxlength="255"
         />
         <label for="jobName">Job Name <span class="red-text">*</span></label>
-        <input
-          required
-          type="text"
-          id="jobName"
-          name="jobName"
-          maxlength="255"
-        />
+        <input type="text" id="jobName" name="jobName" maxlength="255" />
+        <label for="source">Source</label>
+        <input required type="text" id="source" name="source" maxlength="255" />
         <div id="extraFields" class="hidden">
           <label for="city">City (optional)</label>
           <input type="text" id="city" maxlength="255" name="city" />
