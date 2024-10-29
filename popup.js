@@ -135,13 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   createAccountButton.addEventListener('click', () => {
     chrome.tabs.create({
-      url: 'https://job-application-tracking-dev.vercel.app/',
+      url: 'https://www.jobapplicationtracking.com',
     });
   });
 
   getAccessKeyButton.addEventListener('click', () => {
     chrome.tabs.create({
-      url: 'https://job-application-tracking-dev.vercel.app/settings?tab=manage-personal-info',
+      url: 'https://www.jobapplicationtracking.com/settings?tab=manage-personal-info',
     });
   });
 
@@ -219,8 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  fillApplicationButton.addEventListener('click', () => {
-    chrome.storage.sync.get('userCode', async (result) => {
+  fillApplicationButton.addEventListener('click', async () => {
+    await chrome.storage.sync.get('userCode', async (result) => {
       if (!result.userCode) {
         alert('User code not found. Please enter your code again.');
         return;
@@ -237,34 +237,37 @@ document.addEventListener('DOMContentLoaded', () => {
           '<i class="fas fa-edit"></i> Fill Out Application';
         return;
       }
-      chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
-        if (tabs[0]) {
-          chrome.scripting
-            .executeScript({
-              target: { tabId: tabs[0].id },
-              func: fillJobApplicationForm,
-              args: [personalInformation],
-            })
-            .then(() => {
-              fillApplicationButton.disabled = false;
-              fillApplicationButton.innerHTML =
-                '<i class="fas fa-edit"></i> Fill Out Application';
-            })
-            .catch((error) => {
-              console.error('Error filling out the page:', error);
-              fillApplicationButton.disabled = false;
-              fillApplicationButton.innerHTML =
-                '<i class="fas fa-edit"></i> Fill Out Application';
-            });
-        } else {
-          fillApplicationButton.disabled = false;
-          fillApplicationButton.innerHTML =
-            '<i class="fas fa-edit"></i> Fill Out Application';
-          alert(
-            'We cannot find the active tab. You cannot navigate to another tab or window after clicking the plugin icon. The plugin only is authorized to fill out forms on the active tab, which is found when you click the plugin icon while on the page you want to fill out. '
-          );
+      await chrome.tabs.query(
+        { active: true, lastFocusedWindow: true },
+        async (tabs) => {
+          if (tabs[0]) {
+            await chrome.scripting
+              .executeScript({
+                target: { tabId: tabs[0].id },
+                func: fillJobApplicationForm,
+                args: [personalInformation],
+              })
+              .then(() => {
+                fillApplicationButton.disabled = false;
+                fillApplicationButton.innerHTML =
+                  '<i class="fas fa-edit"></i> Fill Out Application';
+              })
+              .catch((error) => {
+                console.error('Error filling out the page:', error);
+                fillApplicationButton.disabled = false;
+                fillApplicationButton.innerHTML =
+                  '<i class="fas fa-edit"></i> Fill Out Application';
+              });
+          } else {
+            fillApplicationButton.disabled = false;
+            fillApplicationButton.innerHTML =
+              '<i class="fas fa-edit"></i> Fill Out Application';
+            alert(
+              'We cannot find the active tab. You cannot navigate to another tab or window after clicking the plugin icon. The plugin only is authorized to fill out forms on the active tab, which is found when you click the plugin icon while on the page you want to fill out. '
+            );
+          }
         }
-      });
+      );
     });
   });
 
@@ -282,32 +285,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  logApplicationButton.addEventListener('click', () => {
+  logApplicationButton.addEventListener('click', async () => {
     actionSection.classList.add('hidden');
     cachedCompanyNames = null;
 
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
-      if (tab) {
-        const url = new URL(tab.url);
-        sourceInput.value = getWebsiteHostDisplayName(url.host);
+    await chrome.tabs.query(
+      { active: true, currentWindow: true },
+      async (tabs) => {
+        const tab = tabs[0];
+        if (tab) {
+          const url = new URL(tab.url);
+          sourceInput.value = getWebsiteHostDisplayName(url.host);
+        }
       }
-    });
-    logApplicationSection.classList.remove('hidden');
-    resizePopup();
-  });
-
-  logApplicationButton.addEventListener('click', () => {
-    actionSection.classList.add('hidden');
-    cachedCompanyNames = null;
-
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
-      if (tab) {
-        const url = new URL(tab.url);
-        sourceInput.value = getWebsiteHostDisplayName(url.host);
-      }
-    });
+    );
     logApplicationSection.classList.remove('hidden');
     resizePopup();
   });
@@ -341,10 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
       submitApplicationButton.disabled = true;
       submitApplicationButton.innerHTML =
         '<i class="fa-solid fa-spinner"></i> Loading...';
-      chrome.storage.sync.get('userCode', (result) => {
+      await chrome.storage.sync.get('userCode', async (result) => {
         const userCode = result.userCode;
         if (userCode) {
-          chrome.tabs.query(
+          await chrome.tabs.query(
             { active: true, currentWindow: true },
             async (tabs) => {
               const tab = tabs[0];
@@ -427,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchPersonalInformation(userCode) {
-    const url = `https://job-application-tracking-dev.vercel.app/api/plugin/getPersonalInformation/v1?userCode=${userCode}`;
+    const url = `https://www.jobapplicationtracking.com/api/plugin/getPersonalInformation/v1?userCode=${userCode}`;
     try {
       const response = await fetch(url);
       if (response.status === 200) {
@@ -444,14 +435,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchCompanyNames(userCode) {
-    const url = `https://job-application-tracking-dev.vercel.app/api/plugin/getCompanyNames/v1?userCode=${userCode}`;
+    const url = `https://www.jobapplicationtracking.com/api/plugin/getCompanyNames/v1?userCode=${userCode}`;
     try {
       const response = await fetch(url);
       if (response.status === 200) {
         const companyNames = await response.json();
         return companyNames;
       } else {
-        console.log(
+        console.error(
           `Failed to fetch companyNames information. Error message: ${response.statusText}`
         );
       }
@@ -462,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function logJobApplication(payload) {
     const url =
-      'https://job-application-tracking-dev.vercel.app/api/plugin/logApplication/v1';
+      'https://www.jobapplicationtracking.com/api/plugin/logApplication/v1';
     try {
       const response = await fetch(url, {
         method: 'POST',

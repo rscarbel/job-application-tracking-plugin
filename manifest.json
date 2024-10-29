@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Job Application Tracking (beta)",
-  "version": "1.5",
-  "description": "Automatically fill job application forms and track applications.",
+  "name": "Job Application Tracking",
+  "version": "1.6",
+  "description": "Track your job applications directly from any site and automatically fill job application forms.",
   "permissions": ["activeTab", "storage", "scripting"],
   "action": {
     "default_popup": "popup.html",
