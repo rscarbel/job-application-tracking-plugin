@@ -259,6 +259,7 @@
         padding: 14px;
         cursor: pointer;
         transition: background 0.2s ease;
+        font-size: 16px;
       }
       .custom-option:hover {
         background: #f8fafc;
@@ -509,84 +510,196 @@
           />
 
           <label for="workType">Work Type (optional)</label>
-          <select id="workType" name="workType">
-            <option value=""></option>
-            <option value="FULL_TIME">Full-time</option>
-            <option value="PART_TIME">Part-time</option>
-            <option value="CONTRACT">Contract</option>
-            <option value="TEMPORARY">Temporary</option>
-            <option value="INTERNSHIP">Internship</option>
-          </select>
+          <div class="custom-select-wrapper" id="workTypeWrapper">
+            <div class="custom-select">
+              <div class="custom-select-trigger">
+                <span class="custom-select-value">Select work type</span>
+                <i class="fa fa-chevron-down"></i>
+              </div>
+              <div class="custom-options">
+                <div class="custom-option" data-value="">Select work type</div>
+                <div class="custom-option" data-value="FULL_TIME">
+                  Full-time
+                </div>
+                <div class="custom-option" data-value="PART_TIME">
+                  Part-time
+                </div>
+                <div class="custom-option" data-value="CONTRACT">Contract</div>
+                <div class="custom-option" data-value="TEMPORARY">
+                  Temporary
+                </div>
+                <div class="custom-option" data-value="INTERNSHIP">
+                  Internship
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="workType" name="workType" value="" />
+          </div>
 
           <label for="industry">Industry (optional)</label>
-          <select id="industry" name="industry">
-            <option value=""></option>
-            <option value="OTHER">Other</option>
-            <option value="UNKNOWN">Unknown</option>
-            <option value="AGRICULTURE">Agriculture</option>
-            <option value="ARTS">Arts</option>
-            <option value="AUTOMOTIVE">Automotive</option>
-            <option value="BANKING">Banking</option>
-            <option value="BIOTECHNOLOGY">Biotechnology</option>
-            <option value="CHEMICAL">Chemical</option>
-            <option value="COMMUNICATIONS">Communications</option>
-            <option value="CONSTRUCTION">Construction</option>
-            <option value="CONSULTING">Consulting</option>
-            <option value="EDUCATION">Education</option>
-            <option value="ELECTRONICS">Electronics</option>
-            <option value="ENERGY">Energy</option>
-            <option value="ENGINEERING">Engineering</option>
-            <option value="ENTERTAINMENT">Entertainment</option>
-            <option value="ENVIRONMENTAL">Environmental</option>
-            <option value="FINANCE">Finance</option>
-            <option value="FOOD">Food</option>
-            <option value="GOVERNMENT">Government</option>
-            <option value="HEALTHCARE">Healthcare</option>
-            <option value="HOSPITALITY">Hospitality</option>
-            <option value="INSURANCE">Insurance</option>
-            <option value="LEGAL">Legal</option>
-            <option value="MANUFACTURING">Manufacturing</option>
-            <option value="MEDIA">Media</option>
-            <option value="NON_PROFIT">Non-profit</option>
-            <option value="PHARMACEUTICAL">Pharmaceutical</option>
-            <option value="REAL_ESTATE">Real Estate</option>
-            <option value="RETAIL">Retail</option>
-            <option value="SOFTWARE">Software</option>
-            <option value="SPORTS">Sports</option>
-            <option value="TECHNOLOGY">Technology</option>
-            <option value="TELECOMMUNICATIONS">Telecommunications</option>
-            <option value="TRANSPORTATION">Transportation</option>
-            <option value="TRAVEL">Travel</option>
-          </select>
+          <div class="custom-select-wrapper" id="industryWrapper">
+            <div class="custom-select">
+              <div class="custom-select-trigger">
+                <span class="custom-select-value">Select industry</span>
+                <i class="fa fa-chevron-down"></i>
+              </div>
+              <div class="custom-options">
+                <div class="custom-option" data-value="">Select industry</div>
+                <div class="custom-option" data-value="OTHER">Other</div>
+                <div class="custom-option" data-value="UNKNOWN">Unknown</div>
+                <div class="custom-option" data-value="AGRICULTURE">
+                  Agriculture
+                </div>
+                <div class="custom-option" data-value="ARTS">Arts</div>
+                <div class="custom-option" data-value="AUTOMOTIVE">
+                  Automotive
+                </div>
+                <div class="custom-option" data-value="BANKING">Banking</div>
+                <div class="custom-option" data-value="BIOTECHNOLOGY">
+                  Biotechnology
+                </div>
+                <div class="custom-option" data-value="CHEMICAL">Chemical</div>
+                <div class="custom-option" data-value="COMMUNICATIONS">
+                  Communications
+                </div>
+                <div class="custom-option" data-value="CONSTRUCTION">
+                  Construction
+                </div>
+                <div class="custom-option" data-value="CONSULTING">
+                  Consulting
+                </div>
+                <div class="custom-option" data-value="EDUCATION">
+                  Education
+                </div>
+                <div class="custom-option" data-value="ELECTRONICS">
+                  Electronics
+                </div>
+                <div class="custom-option" data-value="ENERGY">Energy</div>
+                <div class="custom-option" data-value="ENGINEERING">
+                  Engineering
+                </div>
+                <div class="custom-option" data-value="ENTERTAINMENT">
+                  Entertainment
+                </div>
+                <div class="custom-option" data-value="ENVIRONMENTAL">
+                  Environmental
+                </div>
+                <div class="custom-option" data-value="FINANCE">Finance</div>
+                <div class="custom-option" data-value="FOOD">Food</div>
+                <div class="custom-option" data-value="GOVERNMENT">
+                  Government
+                </div>
+                <div class="custom-option" data-value="HEALTHCARE">
+                  Healthcare
+                </div>
+                <div class="custom-option" data-value="HOSPITALITY">
+                  Hospitality
+                </div>
+                <div class="custom-option" data-value="INSURANCE">
+                  Insurance
+                </div>
+                <div class="custom-option" data-value="LEGAL">Legal</div>
+                <div class="custom-option" data-value="MANUFACTURING">
+                  Manufacturing
+                </div>
+                <div class="custom-option" data-value="MEDIA">Media</div>
+                <div class="custom-option" data-value="NON_PROFIT">
+                  Non-profit
+                </div>
+                <div class="custom-option" data-value="PHARMACEUTICAL">
+                  Pharmaceutical
+                </div>
+                <div class="custom-option" data-value="REAL_ESTATE">
+                  Real Estate
+                </div>
+                <div class="custom-option" data-value="RETAIL">Retail</div>
+                <div class="custom-option" data-value="SOFTWARE">Software</div>
+                <div class="custom-option" data-value="SPORTS">Sports</div>
+                <div class="custom-option" data-value="TECHNOLOGY">
+                  Technology
+                </div>
+                <div class="custom-option" data-value="TELECOMMUNICATIONS">
+                  Telecommunications
+                </div>
+                <div class="custom-option" data-value="TRANSPORTATION">
+                  Transportation
+                </div>
+                <div class="custom-option" data-value="TRAVEL">Travel</div>
+              </div>
+            </div>
+            <input type="hidden" id="industry" name="industry" value="" />
+          </div>
 
           <label for="companySize">Company Size (optional)</label>
-          <select id="companySize" name="companySize">
-            <option value=""></option>
-            <option value="TINY">Tiny</option>
-            <option value="SMALL">Small</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LARGE">Large</option>
-            <option value="MASSIVE">Massive</option>
-          </select>
+          <div class="custom-select-wrapper" id="companySizeWrapper">
+            <div class="custom-select">
+              <div class="custom-select-trigger">
+                <span class="custom-select-value">Select company size</span>
+                <i class="fa fa-chevron-down"></i>
+              </div>
+              <div class="custom-options">
+                <div class="custom-option" data-value="">
+                  Select company size
+                </div>
+                <div class="custom-option" data-value="TINY">Tiny</div>
+                <div class="custom-option" data-value="SMALL">Small</div>
+                <div class="custom-option" data-value="MEDIUM">Medium</div>
+                <div class="custom-option" data-value="LARGE">Large</div>
+                <div class="custom-option" data-value="MASSIVE">Massive</div>
+              </div>
+            </div>
+            <input type="hidden" id="companySize" name="companySize" value="" />
+          </div>
 
           <label for="companyType">Company Type (optional)</label>
-          <select id="companyType" name="companyType">
-            <option value=""></option>
-            <option value="GOVERNMENT_AGENCY">Government Agency</option>
-            <option value="NON_PROFIT">Non-profit</option>
-            <option value="PRIVATE">Private</option>
-            <option value="PUBLIC">Public</option>
-          </select>
+          <div class="custom-select-wrapper" id="companyTypeWrapper">
+            <div class="custom-select">
+              <div class="custom-select-trigger">
+                <span class="custom-select-value">Select company type</span>
+                <i class="fa fa-chevron-down"></i>
+              </div>
+              <div class="custom-options">
+                <div class="custom-option" data-value="">
+                  Select company type
+                </div>
+                <div class="custom-option" data-value="GOVERNMENT_AGENCY">
+                  Government Agency
+                </div>
+                <div class="custom-option" data-value="NON_PROFIT">
+                  Non-profit
+                </div>
+                <div class="custom-option" data-value="PRIVATE">Private</div>
+                <div class="custom-option" data-value="PUBLIC">Public</div>
+              </div>
+            </div>
+            <input type="hidden" id="companyType" name="companyType" value="" />
+          </div>
 
           <label for="companyDesireability"
             >Company Desirability (optional)</label
           >
-          <select id="companyDesireability" name="companyDesireability">
-            <option value=""></option>
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
+          <div class="custom-select-wrapper" id="companyDesireabilityWrapper">
+            <div class="custom-select">
+              <div class="custom-select-trigger">
+                <span class="custom-select-value">Select desirability</span>
+                <i class="fa fa-chevron-down"></i>
+              </div>
+              <div class="custom-options">
+                <div class="custom-option" data-value="">
+                  Select desirability
+                </div>
+                <div class="custom-option" data-value="LOW">Low</div>
+                <div class="custom-option" data-value="MEDIUM">Medium</div>
+                <div class="custom-option" data-value="HIGH">High</div>
+              </div>
+            </div>
+            <input
+              type="hidden"
+              id="companyDesireability"
+              name="companyDesireability"
+              value=""
+            />
+          </div>
 
           <label for="companyWebsite">Company Website (optional)</label>
           <input
@@ -639,15 +752,31 @@
           ></textarea>
 
           <label for="payFrequency">Pay Frequency (optional)</label>
-          <select id="payFrequency" name="payFrequency">
-            <option value=""></option>
-            <option value="HOURLY">Hourly</option>
-            <option value="WEEKLY">Weekly</option>
-            <option value="BIWEEKLY">Bi-weekly</option>
-            <option value="MONTHLY">Monthly</option>
-            <option value="ANNUALLY">Annually</option>
-            <option value="OTHER">Other</option>
-          </select>
+          <div class="custom-select-wrapper" id="payFrequencyWrapper">
+            <div class="custom-select">
+              <div class="custom-select-trigger">
+                <span class="custom-select-value">Select pay frequency</span>
+                <i class="fa fa-chevron-down"></i>
+              </div>
+              <div class="custom-options">
+                <div class="custom-option" data-value="">
+                  Select pay frequency
+                </div>
+                <div class="custom-option" data-value="HOURLY">Hourly</div>
+                <div class="custom-option" data-value="WEEKLY">Weekly</div>
+                <div class="custom-option" data-value="BIWEEKLY">Bi-weekly</div>
+                <div class="custom-option" data-value="MONTHLY">Monthly</div>
+                <div class="custom-option" data-value="ANNUALLY">Annually</div>
+                <div class="custom-option" data-value="OTHER">Other</div>
+              </div>
+            </div>
+            <input
+              type="hidden"
+              id="payFrequency"
+              name="payFrequency"
+              value=""
+            />
+          </div>
         </div>
         <button
           id="showEvenMoreFields"

@@ -52,6 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const customSelectTriggers = document.querySelectorAll(
     '.custom-select-trigger'
   );
+  const workTypeWrapper = document.getElementById('workTypeWrapper');
+  const industryWrapper = document.getElementById('industryWrapper');
+  const companySizeWrapper = document.getElementById('companySizeWrapper');
+  const companyTypeWrapper = document.getElementById('companyTypeWrapper');
+  const companyDesireabilityWrapper = document.getElementById(
+    'companyDesireabilityWrapper'
+  );
+  const payFrequencyWrapper = document.getElementById('payFrequencyWrapper');
 
   customSelectTriggers.forEach((trigger) => {
     trigger.addEventListener('click', function () {
@@ -207,6 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
   backToMenuButton.addEventListener('click', () => {
     logApplicationSection.classList.add('hidden');
     actionSection.classList.remove('hidden');
+
+    // Clear all input fields
     [
       cityInput,
       companyDesirabilityInput,
@@ -234,14 +244,31 @@ document.addEventListener('DOMContentLoaded', () => {
     ].forEach((input) => {
       input.value = '';
     });
-    // Reset custom dropdowns
+
+    // Reset all custom dropdowns
     document.querySelectorAll('.custom-select-value').forEach((value) => {
-      value.textContent = 'Select work mode';
+      const selectId = value.closest('.custom-select-wrapper').id;
+
+      if (selectId === 'workModeWrapper') {
+        value.textContent = 'Select work mode';
+      } else if (selectId === 'workTypeWrapper') {
+        value.textContent = 'Select work type';
+      } else if (selectId === 'industryWrapper') {
+        value.textContent = 'Select industry';
+      } else if (selectId === 'companySizeWrapper') {
+        value.textContent = 'Select company size';
+      } else if (selectId === 'companyTypeWrapper') {
+        value.textContent = 'Select company type';
+      } else if (selectId === 'companyDesireabilityWrapper') {
+        value.textContent = 'Select desirability';
+      } else if (selectId === 'payFrequencyWrapper') {
+        value.textContent = 'Select pay frequency';
+      }
     });
+
     document.querySelectorAll('.custom-option').forEach((option) => {
       option.classList.remove('selected');
     });
-    document.querySelector('#workMode').value = '';
 
     // Make sure the warning is hidden
     existingJobsSection.classList.add('hidden');
