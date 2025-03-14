@@ -52,14 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const customSelectTriggers = document.querySelectorAll(
     '.custom-select-trigger'
   );
-  const workTypeWrapper = document.getElementById('workTypeWrapper');
-  const industryWrapper = document.getElementById('industryWrapper');
-  const companySizeWrapper = document.getElementById('companySizeWrapper');
-  const companyTypeWrapper = document.getElementById('companyTypeWrapper');
-  const companyDesireabilityWrapper = document.getElementById(
-    'companyDesireabilityWrapper'
-  );
-  const payFrequencyWrapper = document.getElementById('payFrequencyWrapper');
 
   customSelectTriggers.forEach((trigger) => {
     trigger.addEventListener('click', function () {
