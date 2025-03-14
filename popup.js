@@ -49,6 +49,59 @@ document.addEventListener('DOMContentLoaded', () => {
   const userCodeInput = document.getElementById('userCode');
   const workModeInput = document.getElementById('workMode');
   const workTypeInput = document.getElementById('workType');
+  const customSelectTriggers = document.querySelectorAll(
+    '.custom-select-trigger'
+  );
+
+  customSelectTriggers.forEach((trigger) => {
+    trigger.addEventListener('click', function () {
+      const select = this.parentNode;
+      select.classList.toggle('open');
+
+      // Close all other dropdowns
+      document.querySelectorAll('.custom-select').forEach((otherSelect) => {
+        if (otherSelect !== select) {
+          otherSelect.classList.remove('open');
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function closeDropdown(e) {
+        if (!select.contains(e.target)) {
+          select.classList.remove('open');
+          document.removeEventListener('click', closeDropdown);
+        }
+      });
+    });
+  });
+
+  // Add option selection functionality
+  document.querySelectorAll('.custom-option').forEach((option) => {
+    option.addEventListener('click', function () {
+      const select = this.closest('.custom-select');
+      const trigger = select.querySelector(
+        '.custom-select-trigger .custom-select-value'
+      );
+      const hiddenInput = select.nextElementSibling;
+
+      // Update the visible value and hidden input
+      trigger.textContent = this.textContent;
+      hiddenInput.value = this.getAttribute('data-value');
+
+      // Mark this option as selected
+      select.querySelectorAll('.custom-option').forEach((opt) => {
+        opt.classList.remove('selected');
+      });
+      this.classList.add('selected');
+
+      // Close the dropdown
+      select.classList.remove('open');
+
+      // Trigger a change event on the hidden input
+      const changeEvent = new Event('input', { bubbles: true });
+      hiddenInput.dispatchEvent(changeEvent);
+    });
+  });
 
   let cachedCompanyNames = null;
 
@@ -181,7 +234,18 @@ document.addEventListener('DOMContentLoaded', () => {
     ].forEach((input) => {
       input.value = '';
     });
+    // Reset custom dropdowns
+    document.querySelectorAll('.custom-select-value').forEach((value) => {
+      value.textContent = 'Select work mode';
+    });
+    document.querySelectorAll('.custom-option').forEach((option) => {
+      option.classList.remove('selected');
+    });
+    document.querySelector('#workMode').value = '';
+
+    // Make sure the warning is hidden
     existingJobsSection.classList.add('hidden');
+
     cachedCompanyNames = null;
     resizePopup();
   });

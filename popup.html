@@ -197,6 +197,89 @@
       .w-49 {
         width: 49%;
       }
+      /* Add to your style section in popup.html */
+      .custom-select-wrapper {
+        position: relative;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .custom-select {
+        position: relative;
+        width: 100%;
+        cursor: pointer;
+      }
+
+      .custom-select-trigger {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px;
+        font-size: 16px;
+        background-color: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+      }
+
+      .custom-select-trigger:hover {
+        border-color: #15803d;
+      }
+
+      .custom-select.open .custom-select-trigger {
+        border-color: #15803d;
+        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.2);
+        border-radius: 12px 12px 0 0;
+      }
+
+      .custom-select-trigger i {
+        transition: transform 0.3s ease;
+        color: #15803d;
+      }
+
+      .custom-select.open .custom-select-trigger i {
+        transform: rotate(180deg);
+      }
+
+      .custom-options {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #15803d;
+        border-top: 0;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: all 0.2s ease;
+        z-index: 10;
+      }
+
+      .custom-select.open .custom-options {
+        max-height: 200px;
+        opacity: 1;
+        overflow-y: auto;
+      }
+
+      .custom-option {
+        padding: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .custom-option:hover {
+        background: #f8fafc;
+      }
+
+      .custom-option.selected {
+        background: #dcfce7;
+        color: #15803d;
+        font-weight: 500;
+      }
       #backToMenu {
         background-color: transparent;
         color: #475569;
@@ -385,12 +468,22 @@
           <label for="state">State (optional)</label>
           <input type="text" id="state" name="state" maxlength="255" />
           <label for="workMode">Work Mode (optional)</label>
-          <select id="workMode" name="workMode">
-            <option value=""></option>
-            <option value="ONSITE">On site</option>
-            <option value="REMOTE">Remote</option>
-            <option value="HYBRID">Hybrid</option>
-          </select>
+          <div class="custom-select-wrapper" id="workModeWrapper">
+            <div class="custom-select">
+              <div class="custom-select-trigger">
+                <span class="custom-select-value">Select work mode</span>
+                <i class="fa fa-chevron-down"></i>
+              </div>
+              <div class="custom-options">
+                <div class="custom-option" data-value="">Select work mode</div>
+                <div class="custom-option" data-value="ONSITE">On site</div>
+                <div class="custom-option" data-value="REMOTE">Remote</div>
+                <div class="custom-option" data-value="HYBRID">Hybrid</div>
+              </div>
+            </div>
+            <input type="hidden" id="workMode" name="workMode" value="" />
+          </div>
+
           <label for="payAmount">Pay Amount (optional)</label>
           <input
             type="text"
