@@ -58,6 +58,56 @@ document.addEventListener('DOMContentLoaded', () => {
       const select = this.parentNode;
       select.classList.toggle('open');
 
+      if (select.classList.contains('open')) {
+        const options = select.querySelector('.custom-options');
+
+        // Remove any existing indicator first
+        const existingIndicator = select.querySelector('.scroll-indicator');
+        if (existingIndicator) {
+          existingIndicator.remove();
+        }
+
+        // Only add scroll indicator if scrolling is needed
+        setTimeout(() => {
+          if (options.scrollHeight > options.clientHeight + 5) {
+            // Adding small buffer for safety
+            const indicator = document.createElement('div');
+            indicator.className = 'scroll-indicator';
+            indicator.innerHTML = '<i class="fas fa-chevron-down"></i>';
+            options.appendChild(indicator);
+
+            // Make the indicator functional
+            indicator.addEventListener('click', function (e) {
+              e.stopPropagation();
+              const scrollAmount = 40; // Scroll by 40px on each click
+              options.scrollTop += scrollAmount;
+            });
+
+            // Update indicator visibility based on scroll position
+            const updateIndicatorVisibility = function () {
+              const scrollableDistance =
+                options.scrollHeight - options.clientHeight;
+              const scrollPercent = options.scrollTop / scrollableDistance;
+
+              if (scrollPercent > 0.8) {
+                // Nearly at the bottom
+                indicator.style.opacity = '0';
+              } else {
+                indicator.style.opacity = '1';
+              }
+            };
+
+            // Initial check
+            updateIndicatorVisibility();
+
+            // Listen for scroll events
+            options.addEventListener('scroll', updateIndicatorVisibility, {
+              passive: true,
+            });
+          }
+        }, 10); // Small timeout to ensure the dropdown is fully expanded
+      }
+
       // Close all other dropdowns
       document.querySelectorAll('.custom-select').forEach((otherSelect) => {
         if (otherSelect !== select) {
