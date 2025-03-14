@@ -435,12 +435,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchCompanyNames(userCode) {
-    const url = `https://www.jobapplicationtracking.com/api/plugin/getCompanyNames/v1?userCode=${userCode}`;
+    const url = `https://www.jobapplicationtracking.com/api/plugin/getCompanyNames/v2/${userCode}`;
     try {
       const response = await fetch(url);
       if (response.status === 200) {
-        const companyNames = await response.json();
-        return companyNames;
+        return await response.json();
       } else {
         console.error(
           `Failed to fetch companyNames information. Error message: ${response.statusText}`
@@ -475,16 +474,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function checkForExistingJobs(companyName) {
     if (!cachedCompanyNames) return;
-    const matchedCompany = cachedCompanyNames.find(
-      (company) =>
-        company.companyName.toLowerCase() === companyName.toLowerCase()
-    );
+
+    const normalizedCompanyName = companyName.toLowerCase().replace(/\s+/g, '');
+    const matchedCompany =
+      cachedCompanyNames.currentApplicationGroup.companies[
+        normalizedCompanyName
+      ];
 
     if (matchedCompany) {
-      existingJobsList.innerHTML = matchedCompany.jobs
-        .map((job) => `<li>${job}</li>`)
-        .join('');
+      const { latestApplication, allApplications } = matchedCompany;
+
+      const latestDate = new Date(latestApplication.applicationDate);
+      const formattedDate = latestDate.toLocaleDateString();
+
+      let jobListHtml = `
+      <li>
+        <strong>${latestApplication.jobTitle}</strong> 
+        <span class="application-date">(${formattedDate})</span>
+      </li>
+    `;
+
+      // Add "See more" dropdown if there are multiple applications
+      if (allApplications.length > 1) {
+        jobListHtml += `
+        <li class="see-more-container">
+          <a href="#" id="seeMoreApplications">See ${
+            allApplications.length - 1
+          } more...</a>
+          <ul id="additionalApplications" class="hidden">
+      `;
+
+        // Add all applications except the latest one
+        allApplications.slice(1).forEach((app) => {
+          const appDate = new Date(app.applicationDate);
+          const appFormattedDate = appDate.toLocaleDateString();
+          jobListHtml += `
+          <li>
+            <strong>${app.jobTitle}</strong> 
+            <span class="application-date">(${appFormattedDate})</span>
+          </li>
+        `;
+        });
+
+        jobListHtml += `</ul></li>`;
+      }
+
+      existingJobsList.innerHTML = jobListHtml;
       existingJobsSection.classList.remove('hidden');
+
+      const seeMoreLink = document.getElementById('seeMoreApplications');
+      if (seeMoreLink) {
+        seeMoreLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          const additionalApplications = document.getElementById(
+            'additionalApplications'
+          );
+          if (additionalApplications.classList.contains('hidden')) {
+            additionalApplications.classList.remove('hidden');
+            seeMoreLink.textContent = `Hide ${
+              allApplications.length - 1
+            } more...`;
+          } else {
+            additionalApplications.classList.add('hidden');
+            seeMoreLink.textContent = `See ${
+              allApplications.length - 1
+            } more...`;
+          }
+          resizePopup();
+        });
+      }
     } else {
       existingJobsList.innerHTML = '';
       existingJobsSection.classList.add('hidden');
