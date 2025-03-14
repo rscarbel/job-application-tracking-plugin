@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ].forEach((input) => {
       input.value = '';
     });
+    existingJobsSection.classList.add('hidden');
     cachedCompanyNames = null;
     resizePopup();
   });
