@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Job Application Tracking",
-  "version": "1.7",
+  "version": "1.8",
   "description": "Track your job applications directly from any site and automatically fill job application forms.",
   "permissions": ["activeTab", "storage", "scripting"],
   "action": {
