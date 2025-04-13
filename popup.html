@@ -14,431 +14,7 @@
       crossorigin="anonymous"
       onerror="this.onerror=null;this.href='path/to/local/font-awesome.min.css';"
     />
-    <style>
-      body {
-        font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana,
-          sans-serif;
-        background-color: #f8fafc;
-        color: #1e293b;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        min-width: 430px;
-        text-wrap: balance;
-      }
-      .container {
-        position: relative;
-        background-color: #fff;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
-          0 8px 10px -6px rgba(0, 0, 0, 0.05);
-        padding: 30px;
-        max-width: 400px;
-        min-width: 280px;
-        width: 100%;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        border-radius: 16px;
-      }
-      .close-button {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        padding: 0;
-        height: 10px;
-        width: 10px;
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #64748b;
-        transition: color 0.2s ease;
-      }
-      .close-button:hover {
-        color: #0f172a;
-        background: none;
-        border: none;
-      }
-      .actionSection {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        width: 100%;
-      }
-      .actionSection button {
-        width: 100%;
-      }
-      h1,
-      h2 {
-        color: #15803d;
-        margin-bottom: 20px;
-        font-weight: 600;
-      }
-      small {
-        text-wrap: balance;
-        color: #64748b;
-      }
-      textarea {
-        resize: vertical;
-        min-height: 100px;
-        font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana,
-          sans-serif;
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        padding: 14px;
-        transition: all 0.2s ease;
-      }
-      textarea:focus {
-        outline: none;
-        border-color: #15803d;
-        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.2);
-      }
-      .mr-10 {
-        margin-right: 10px;
-      }
-      .color-white {
-        color: white;
-      }
-      .color-red {
-        color: #ef4444;
-      }
-      input[type='text'],
-      textarea {
-        width: calc(100% - 22px);
-        font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana,
-          sans-serif;
-        padding: 14px;
-        margin-bottom: 20px;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: all 0.2s ease;
-      }
-      input[type='text']:focus,
-      textarea:focus {
-        outline: none;
-        border-color: #15803d;
-        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.2);
-      }
-      button {
-        background-color: #15803d;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 14px 24px;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin: 5px 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        display: inline-flex;
-        width: auto;
-        flex: 1;
-      }
-      button:hover {
-        background-color: #166534;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      }
-      .hidden {
-        display: none;
-        max-height: 0;
-        max-width: 0;
-        overflow: hidden;
-      }
-      select {
-        width: 100%;
-        padding: 14px;
-        margin-bottom: 20px;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana,
-          sans-serif;
-        font-size: 16px;
-        background-color: #fff;
-        transition: all 0.2s ease;
-        appearance: none;
-        background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2315803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
-        background-repeat: no-repeat;
-        background-position: right 14px center;
-        cursor: pointer;
-        background-size: 16px;
-      }
-      select:focus {
-        outline: none;
-        border-color: #15803d;
-        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.2);
-      }
-      label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 14px;
-        color: #475569;
-        text-align: left;
-        font-weight: 500;
-      }
-      button:disabled {
-        background-color: #94a3b8;
-        color: #f1f5f9;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
-      .width-full {
-        width: 100%;
-      }
-      .w-49 {
-        width: 49%;
-      }
-      .custom-select-wrapper {
-        position: relative;
-        width: 100%;
-        margin-bottom: 20px;
-      }
-      .custom-select {
-        position: relative;
-        width: 100%;
-        cursor: pointer;
-      }
-      .custom-select-trigger {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px;
-        font-size: 16px;
-        background-color: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        transition: all 0.2s ease;
-      }
-      .custom-select-trigger:hover {
-        border-color: #15803d;
-      }
-      .custom-select.open .custom-select-trigger {
-        border-color: #15803d;
-        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.2);
-        border-radius: 12px 12px 0 0;
-      }
-      .custom-select-trigger i {
-        transition: transform 0.3s ease;
-        color: #15803d;
-      }
-      .custom-select.open .custom-select-trigger i {
-        transform: rotate(180deg);
-      }
-      .custom-options {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: #fff;
-        border: 1px solid #15803d;
-        border-top: 0;
-        border-radius: 0 0 12px 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        max-height: 0;
-        overflow: hidden;
-        opacity: 0;
-        transition: all 0.2s ease;
-        z-index: 10;
-      }
-      .custom-select.open .custom-options {
-        max-height: 200px;
-        opacity: 1;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: #15803d #f1f5f9;
-      }
-      .custom-options::-webkit-scrollbar {
-        width: 8px;
-      }
-      .custom-options::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 0 0 12px 0;
-      }
-
-      .custom-options::-webkit-scrollbar-thumb {
-        background-color: #15803d;
-        border-radius: 20px;
-        border: 2px solid #f1f5f9;
-      }
-
-      /* visual indicator at the bottom of the dropdown */
-      .custom-select.open .custom-options::after {
-        content: '';
-        position: sticky;
-        bottom: 0;
-        display: block;
-        height: 30px;
-        width: 100%;
-        background: linear-gradient(
-          to top,
-          rgba(255, 255, 255, 1) 0%,
-          rgba(255, 255, 255, 0) 100%
-        );
-        pointer-events: none;
-        padding-right: 30px;
-      }
-
-      .scroll-indicator {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
-        color: #15803d;
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: opacity 0.3s ease, background-color 0.2s ease;
-        z-index: 20;
-        cursor: pointer;
-      }
-
-      .scroll-indicator:hover {
-        background-color: #f1f5f9;
-      }
-
-      .scroll-indicator:active {
-        transform: translateY(1px);
-      }
-
-      .custom-option {
-        padding: 14px;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        font-size: 16px;
-      }
-      .custom-option:hover {
-        background: #f8fafc;
-      }
-      .custom-option.selected {
-        background: #dcfce7;
-        color: #15803d;
-        font-weight: 500;
-      }
-      #backToMenu {
-        background-color: transparent;
-        color: #475569;
-        border: 1px solid #cbd5e1;
-        border-radius: 12px;
-      }
-      #backToMenu:hover {
-        background-color: #f1f5f9;
-        border-color: #94a3b8;
-      }
-      .flex {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        gap: 10px;
-      }
-      .m-auto {
-        margin: auto;
-      }
-      .input-box {
-        height: 20px;
-        flex: 1;
-        max-width: none;
-        font-size: 16px;
-        padding: 14px;
-        margin-bottom: 0;
-      }
-      button.input-box {
-        background-color: #15803d;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      #saveCode {
-        height: 48px;
-        width: 48px;
-        min-width: 48px;
-        flex: 0 0 auto;
-        padding: 12px;
-        margin-top: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 12px;
-      }
-      .save-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        gap: 8px;
-      }
-      #existingJobs {
-        text-align: left;
-        align-self: flex-start;
-        background-color: #fef2f2;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 16px;
-        border-left: 4px solid #ef4444;
-      }
-      .application-date {
-        color: #64748b;
-        font-size: 0.9em;
-      }
-      #existingJobsList {
-        list-style-type: none;
-        padding-left: 10px;
-        margin: 8px 0 0 0;
-      }
-      #additionalApplications {
-        list-style-type: none;
-        padding-left: 15px;
-        margin-top: 5px;
-      }
-      .see-more-container {
-        margin-top: 8px;
-      }
-      #seeMoreApplications {
-        color: #15803d;
-        text-decoration: none;
-        font-size: 0.9em;
-        cursor: pointer;
-        font-weight: 500;
-      }
-      #seeMoreApplications:hover {
-        text-decoration: underline;
-      }
-      #codeEntrySection .flex {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-      }
-      #codeEntrySection .flex button {
-        flex: 1;
-      }
-      #logApplicationSection .flex {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-      }
-
-      #logApplicationSection .flex button {
-        flex-basis: 48%;
-        min-width: 120px;
-      }
-    </style>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="container">
@@ -532,15 +108,89 @@
             <input type="hidden" id="workMode" name="workMode" value="" />
           </div>
 
-          <label for="payAmount">Pay Amount (optional)</label>
-          <input
-            type="text"
-            id="payAmount"
-            name="payAmount"
-            pattern="^\d*(\.\d{0,2})?$"
-            maxlength="255"
-            title="Please enter a valid amount with up to two decimal places."
-          />
+          <div>
+            <label for="compensationType">Compensation Type</label>
+            <div class="pay-toggle-container">
+              <label class="toggle-label">
+                <input
+                  type="radio"
+                  name="compensationType"
+                  value="range"
+                  id="payRangeToggle"
+                  checked
+                />
+                <span>Range</span>
+              </label>
+              <label class="toggle-label">
+                <input
+                  type="radio"
+                  name="compensationType"
+                  value="exact"
+                  id="payExactToggle"
+                />
+                <span>Exact Amount</span>
+              </label>
+            </div>
+
+            <div id="payRangeContainer">
+              <label for="salaryRangeMin">Minimum Salary (optional)</label>
+              <input
+                type="text"
+                id="salaryRangeMin"
+                name="salaryRangeMin"
+                maxlength="255"
+                pattern="^\d*(\.\d{0,2})?$"
+                inputmode="decimal"
+                title="Please enter a valid amount with up to two decimal places."
+              />
+
+              <label for="salaryRangeMax">Maximum Salary (optional)</label>
+              <input
+                type="text"
+                id="salaryRangeMax"
+                name="salaryRangeMax"
+                maxlength="255"
+                pattern="^\d*(\.\d{0,2})?$"
+                inputmode="decimal"
+                title="Please enter a valid amount with up to two decimal places."
+              />
+            </div>
+
+            <div id="payExactContainer" class="hidden">
+              <label for="payAmount">Pay Amount (optional)</label>
+              <input
+                type="text"
+                id="payAmount"
+                name="payAmount"
+                pattern="^\d*(\.\d{0,2})?$"
+                maxlength="255"
+                inputmode="decimal"
+                title="Please enter a valid amount with up to two decimal places."
+              />
+            </div>
+
+            <label for="currency">Currency</label>
+            <div class="custom-select-wrapper" id="currencyWrapper">
+              <div class="custom-select">
+                <div class="custom-select-trigger">
+                  <span class="custom-select-value">USD</span>
+                  <i class="fa fa-chevron-down"></i>
+                </div>
+                <div class="custom-options" id="currencyOptions">
+                  <!-- Options will be populated by JavaScript -->
+                  <div class="custom-option selected" data-value="USD">
+                    USD - US Dollar
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="currency" name="currency" value="USD" />
+            </div>
+
+            <span id="pay-error-message" style="color: red; display: none">
+              Please enter a valid amount with up to two decimal places.
+            </span>
+          </div>
+
           <label for="notes">Notes (optional)</label>
           <textarea id="notes" name="notes" maxlength="65535"></textarea>
           <span id="pay-error-message" style="color: red; display: none"
@@ -548,26 +198,6 @@
           >
         </div>
         <div id="even-more-extra-fields" class="hidden">
-          <label for="salaryRangeMax">Salary Range Max (optional)</label>
-          <input
-            type="text"
-            id="salaryRangeMax"
-            name="salaryRangeMax"
-            maxlength="255"
-            pattern="^\\d*(\\.\\d{0,2})?$"
-            title="Please enter a valid amount with up to two decimal places."
-          />
-
-          <label for="salaryRangeMin">Salary Range Min (optional)</label>
-          <input
-            type="text"
-            id="salaryRangeMin"
-            name="salaryRangeMin"
-            maxlength="255"
-            pattern="^\\d*(\\.\\d{0,2})?$"
-            title="Please enter a valid amount with up to two decimal places."
-          />
-
           <label for="workType">Work Type (optional)</label>
           <div class="custom-select-wrapper" id="workTypeWrapper">
             <div class="custom-select">
@@ -843,6 +473,9 @@
         >
           <i class="fas fa-plus mr-10 color-white"></i> Even More Fields...
         </button>
+        <button class="width-full claymorphic-shadow" id="clearFieldsButton">
+          <i class="fas fa-eraser mr-10 color-white"></i> Clear All Fields
+        </button>
         <button class="width-full claymorphic-shadow" id="showMoreFields">
           <i class="fas fa-plus mr-10 color-white"></i> Show More Fields
         </button>
@@ -857,6 +490,9 @@
         </div>
       </div>
     </div>
+    <script src="currencies.js"></script>
+    <script src="detectJobDetails.js"></script>
+    <script src="autofill.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

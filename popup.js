@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const showEvenMoreFieldsButton =
     document.getElementById('showEvenMoreFields');
   const showExtraFieldsButton = document.getElementById('showMoreFields');
+  const clearFieldsButton = document.getElementById('clearFieldsButton');
   const sourceInput = document.getElementById('source');
   const stateInput = document.getElementById('state');
   const streetAddress2Input = document.getElementById('streetAddress2');
@@ -52,6 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const customSelectTriggers = document.querySelectorAll(
     '.custom-select-trigger'
   );
+  const payRangeToggle = document.getElementById('payRangeToggle');
+  const payExactToggle = document.getElementById('payExactToggle');
+  const payRangeContainer = document.getElementById('payRangeContainer');
+  const payExactContainer = document.getElementById('payExactContainer');
+  const currencyInput = document.getElementById('currency');
+  const currencyWrapper = document.getElementById('currencyWrapper');
+  const currencyOptions = document.getElementById('currencyOptions');
 
   customSelectTriggers.forEach((trigger) => {
     trigger.addEventListener('click', function () {
@@ -193,6 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300)
   );
 
+  salaryRangeMinInput.addEventListener('input', validateSalaryField);
+  salaryRangeMaxInput.addEventListener('input', validateSalaryField);
+  payAmountInput.addEventListener('input', validateSalaryField);
+
   showExtraFieldsButton.addEventListener('click', () => {
     if (extraFields.classList.contains('hidden')) {
       extraFields.classList.remove('hidden');
@@ -319,6 +331,27 @@ document.addEventListener('DOMContentLoaded', () => {
     resizePopup();
   });
 
+  payRangeToggle.addEventListener('change', function () {
+    if (this.checked) {
+      payRangeContainer.classList.remove('hidden');
+      payExactContainer.classList.add('hidden');
+      payAmountInput.value = '';
+    }
+    resizePopup();
+    validateForm();
+  });
+
+  payExactToggle.addEventListener('change', function () {
+    if (this.checked) {
+      payRangeContainer.classList.add('hidden');
+      payExactContainer.classList.remove('hidden');
+      salaryRangeMinInput.value = '';
+      salaryRangeMaxInput.value = '';
+    }
+    resizePopup();
+    validateForm();
+  });
+
   userCodeInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       saveCodeButton.click();
@@ -423,21 +456,360 @@ document.addEventListener('DOMContentLoaded', () => {
     actionSection.classList.add('hidden');
     cachedCompanyNames = null;
 
+    console.log('Log application button clicked');
+
     await chrome.tabs.query(
       { active: true, currentWindow: true },
       async (tabs) => {
         const tab = tabs[0];
         if (tab) {
-          const url = new URL(tab.url);
-          sourceInput.value = getWebsiteHostDisplayName(url.host);
+          console.log('Tab found:', tab);
+          // Show loading state
+          logApplicationButton.disabled = true;
+          logApplicationButton.innerHTML =
+            '<i class="fa-solid fa-spinner"></i> Detecting job details...';
+
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['detectJobDetails.js'],
+            });
+
+            const [result] = await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              func: () => {
+                console.log('Attempting to call detectJobDetails');
+                return window.detectJobDetails
+                  ? window.detectJobDetails()
+                  : null;
+              },
+            });
+
+            const jobDetails = result?.result;
+
+            if (jobDetails) {
+              console.log('Job details detected:', jobDetails);
+              // Populate form with detected details
+              populateJobApplicationForm(jobDetails);
+            } else {
+              // Fallback to just setting the source as before
+              console.log('No job details detected, setting source only');
+              const url = new URL(tab.url);
+              sourceInput.value = getWebsiteHostDisplayName(url.host);
+            }
+          } catch (error) {
+            console.error('Error detecting job details:', error);
+            // Fallback to just setting the source as before
+            const url = new URL(tab.url);
+            sourceInput.value = getWebsiteHostDisplayName(url.host);
+          } finally {
+            // Reset button state
+            logApplicationButton.disabled = false;
+            logApplicationButton.innerHTML =
+              '<i class="fas fa-clipboard-list mr-10 color-white"></i> Log Application';
+          }
         }
       }
     );
+
     logApplicationSection.classList.remove('hidden');
     resizePopup();
   });
 
+  clearFieldsButton.addEventListener('click', () => {
+    clearAllFields();
+    validateForm();
+  });
+
+  function validateSalaryField(event) {
+    const regex = /^\d*(\.\d{0,2})?$/;
+    const field = event.target;
+
+    // Save the cursor position
+    const cursorPosition = field.selectionStart;
+
+    if (field.value && !regex.test(field.value)) {
+      // Invalid input - revert to previous valid value or empty
+      field.value = field.value.replace(/[^\d.]/g, ''); // Remove non-numeric and non-decimal characters
+
+      // Ensure only one decimal point
+      const parts = field.value.split('.');
+      if (parts.length > 2) {
+        field.value = parts[0] + '.' + parts.slice(1).join('');
+      }
+
+      // Ensure only two decimal places
+      if (parts.length > 1 && parts[1].length > 2) {
+        field.value = parts[0] + '.' + parts[1].substring(0, 2);
+      }
+
+      // Set cursor position while preventing it from jumping
+      setTimeout(() => {
+        field.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
+      }, 0);
+
+      payErrorMessage.style.display = 'inline';
+    } else {
+      payErrorMessage.style.display = 'none';
+    }
+
+    validateForm();
+  }
+
+  function populateJobApplicationForm(jobDetails) {
+    // Only set values if they exist and are non-empty
+    if (jobDetails.companyName) {
+      companyNameInput.value = jobDetails.companyName;
+      companyNameInput.dispatchEvent(new Event('input'));
+    }
+
+    if (jobDetails.jobTitle) {
+      jobNameInput.value = jobDetails.jobTitle;
+    }
+
+    if (jobDetails.source) {
+      sourceInput.value = getWebsiteHostDisplayName(jobDetails.source);
+    }
+
+    // Location details
+    if (jobDetails.location) {
+      if (jobDetails.location.city) cityInput.value = jobDetails.location.city;
+      if (jobDetails.location.state)
+        stateInput.value = jobDetails.location.state;
+      if (jobDetails.location.country)
+        countryInput.value = jobDetails.location.country;
+      if (jobDetails.location.postalCode)
+        postalCodeInput.value = jobDetails.location.postalCode;
+      if (jobDetails.location.streetAddress)
+        streetAddressInput.value = jobDetails.location.streetAddress;
+      if (jobDetails.location.streetAddress2)
+        streetAddress2Input.value = jobDetails.location.streetAddress2;
+    }
+
+    if (jobDetails.compensation) {
+      if (jobDetails.compensation) {
+        if (isValidSalaryData(jobDetails.compensation.payAmount)) {
+          payAmountInput.value = jobDetails.compensation.payAmount;
+          payExactToggle.checked = true;
+          payRangeToggle.checked = false;
+          payRangeContainer.classList.add('hidden');
+          payExactContainer.classList.remove('hidden');
+          payAmountInput.dispatchEvent(new Event('input'));
+        } else if (
+          isValidSalaryData(jobDetails.compensation.salaryRangeMin) ||
+          isValidSalaryData(jobDetails.compensation.salaryRangeMax)
+        ) {
+          payRangeToggle.checked = true;
+          payExactToggle.checked = false;
+          payRangeContainer.classList.remove('hidden');
+          payExactContainer.classList.add('hidden');
+        }
+
+        if (isValidSalaryData(jobDetails.compensation.salaryRangeMin)) {
+          salaryRangeMinInput.value = jobDetails.compensation.salaryRangeMin;
+        }
+
+        if (isValidSalaryData(jobDetails.compensation.salaryRangeMax)) {
+          salaryRangeMaxInput.value = jobDetails.compensation.salaryRangeMax;
+        }
+      }
+
+      if (jobDetails.compensation.payFrequency) {
+        setCustomSelectValue(
+          'payFrequencyWrapper',
+          jobDetails.compensation.payFrequency
+        );
+      }
+
+      if (jobDetails.compensation.currency) {
+        currencyInput.value = jobDetails.compensation.currency;
+      }
+    }
+
+    if (jobDetails.jobDetails) {
+      if (jobDetails.jobDetails.industry) {
+        setCustomSelectValue('industryWrapper', jobDetails.jobDetails.industry);
+      }
+
+      if (jobDetails.jobDetails.workMode) {
+        setCustomSelectValue('workModeWrapper', jobDetails.jobDetails.workMode);
+      }
+
+      if (jobDetails.jobDetails.workType) {
+        setCustomSelectValue('workTypeWrapper', jobDetails.jobDetails.workType);
+      }
+
+      if (jobDetails.jobDetails.description) {
+        jobDescriptionInput.value = jobDetails.jobDetails.description;
+      }
+    }
+
+    if (jobDetails.companyDetails) {
+      if (jobDetails.companyDetails.website) {
+        companyWebsiteInput.value = jobDetails.companyDetails.website;
+      }
+
+      if (jobDetails.companyDetails.linkedin) {
+        companyLinkedinInput.value = jobDetails.companyDetails.linkedin;
+      }
+
+      if (jobDetails.companyDetails.size) {
+        setCustomSelectValue(
+          'companySizeWrapper',
+          jobDetails.companyDetails.size
+        );
+      }
+
+      if (jobDetails.companyDetails.type) {
+        setCustomSelectValue(
+          'companyTypeWrapper',
+          jobDetails.companyDetails.type
+        );
+      }
+
+      if (jobDetails.companyDetails.desirability) {
+        setCustomSelectValue(
+          'companyDesireabilityWrapper',
+          jobDetails.companyDetails.desirability
+        );
+      }
+    }
+
+    if (jobDetails.notes) {
+      notesInput.value = jobDetails.notes;
+    }
+    validateForm();
+  }
+
+  function clearAllFields() {
+    [
+      cityInput,
+      companyDesirabilityInput,
+      companyLinkedinInput,
+      companyNameInput,
+      companySizeInput,
+      companyTypeInput,
+      companyWebsiteInput,
+      countryInput,
+      industryInput,
+      jobDescriptionInput,
+      jobNameInput,
+      notesInput,
+      payAmountInput,
+      payFrequencyInput,
+      postalCodeInput,
+      salaryRangeMaxInput,
+      salaryRangeMinInput,
+      sourceInput,
+      stateInput,
+      streetAddress2Input,
+      streetAddressInput,
+      workModeInput,
+      workTypeInput,
+    ].forEach((input) => {
+      input.value = '';
+    });
+
+    currencyInput.value = 'USD';
+    const currencyTrigger = currencyWrapper.querySelector(
+      '.custom-select-trigger .custom-select-value'
+    );
+    if (currencyTrigger) {
+      currencyTrigger.textContent = 'USD';
+    }
+    document
+      .querySelectorAll('#currencyOptions .custom-option')
+      .forEach((option) => {
+        option.classList.remove('selected');
+        if (option.getAttribute('data-value') === 'USD') {
+          option.classList.add('selected');
+        }
+      });
+
+    payRangeToggle.checked = true;
+    payExactToggle.checked = false;
+    payRangeContainer.classList.remove('hidden');
+    payExactContainer.classList.add('hidden');
+    currencyInput.value = 'USD';
+
+    document.querySelectorAll('.custom-select-value').forEach((value) => {
+      const selectId = value.closest('.custom-select-wrapper').id;
+
+      if (selectId === 'workModeWrapper') {
+        value.textContent = 'Select work mode';
+      } else if (selectId === 'workTypeWrapper') {
+        value.textContent = 'Select work type';
+      } else if (selectId === 'industryWrapper') {
+        value.textContent = 'Select industry';
+      } else if (selectId === 'companySizeWrapper') {
+        value.textContent = 'Select company size';
+      } else if (selectId === 'companyTypeWrapper') {
+        value.textContent = 'Select company type';
+      } else if (selectId === 'companyDesireabilityWrapper') {
+        value.textContent = 'Select desirability';
+      } else if (selectId === 'payFrequencyWrapper') {
+        value.textContent = 'Select pay frequency';
+      }
+    });
+
+    document.querySelectorAll('.custom-option').forEach((option) => {
+      option.classList.remove('selected');
+    });
+
+    // Hide additional fields sections if they're open
+    if (!extraFields.classList.contains('hidden')) {
+      extraFields.classList.add('hidden');
+      showExtraFieldsButton.innerHTML =
+        '<i class="fas fa-plus mr-10 color-white"></i> Show More Fields';
+      showEvenMoreFieldsButton.classList.add('hidden');
+    }
+
+    if (!evenMoreHiddenFields.classList.contains('hidden')) {
+      evenMoreHiddenFields.classList.add('hidden');
+    }
+
+    // Make sure the warning is hidden
+    existingJobsSection.classList.add('hidden');
+
+    resizePopup();
+  }
+
+  function setCustomSelectValue(wrapperId, value) {
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+
+    const hiddenInput = wrapper.nextElementSibling;
+    if (!hiddenInput) return;
+
+    const options = wrapper.querySelectorAll('.custom-option');
+    let found = false;
+
+    options.forEach((option) => {
+      if (
+        option.getAttribute('data-value').toUpperCase() === value.toUpperCase()
+      ) {
+        // Trigger a click on the matching option
+        option.click();
+        found = true;
+      }
+    });
+
+    if (!found && value) {
+      // If no exact match but we have a value, try to set it directly
+      hiddenInput.value = value;
+      const trigger = wrapper.querySelector(
+        '.custom-select-trigger .custom-select-value'
+      );
+      if (trigger) {
+        trigger.textContent = value;
+      }
+    }
+  }
+
   submitApplicationButton.addEventListener('click', async () => {
+    if (!validateForm()) {
+      return;
+    }
     const city = cityInput.value;
     const companyDesirability = companyDesirabilityInput.value;
     const companyLinkedin = companyLinkedinInput.value;
@@ -461,6 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const streetAddress2 = streetAddress2Input.value;
     const workMode = workModeInput.value;
     const workType = workTypeInput.value;
+    const currency = currencyInput.value || 'USD';
 
     if (companyName && jobName) {
       submitApplicationButton.disabled = true;
@@ -480,6 +853,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   jobName,
                   applicationURL,
                   userCode,
+                  currency,
                   ...(city && { city }),
                   ...(companyDesirability && { companyDesirability }),
                   ...(companyLinkedin && { companyLinkedin }),
@@ -501,6 +875,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   ...(streetAddress2 && { streetAddress2 }),
                   ...(workMode && { workMode }),
                   ...(workType && { workType }),
+                  ...(payRangeToggle.checked &&
+                    salaryRangeMin && { salaryRangeMin }),
+                  ...(payRangeToggle.checked &&
+                    salaryRangeMax && { salaryRangeMax }),
+                  ...(payExactToggle.checked && payAmount && { payAmount }),
                 };
                 const isSuccessful = await logJobApplication(payload);
                 if (isSuccessful) {
@@ -533,6 +912,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const companyName = companyNameInput.value.trim();
     const jobName = jobNameInput.value.trim();
     const payAmount = payAmountInput.value.trim();
+    const salaryRangeMin = salaryRangeMinInput.value.trim();
+    const salaryRangeMax = salaryRangeMaxInput.value.trim();
     const regex = /^\d*(\.\d{0,2})?$/;
 
     let isValid = true;
@@ -541,14 +922,42 @@ document.addEventListener('DOMContentLoaded', () => {
       isValid = false;
     }
 
-    if (payAmount && !regex.test(payAmount)) {
-      payErrorMessage.style.display = 'inline';
-      isValid = false;
-    } else {
-      payErrorMessage.style.display = 'none';
+    // Check for empty fields (this prevents submitting with empty salary fields)
+    if (payExactToggle.checked) {
+      // If exact pay is selected, either payAmount should be empty or valid
+      if (payAmount && !regex.test(payAmount)) {
+        payErrorMessage.style.display = 'inline';
+        isValid = false;
+      } else {
+        payErrorMessage.style.display = 'none';
+      }
+    } else if (payRangeToggle.checked) {
+      // If range is selected, both min and max should be either empty or valid
+      if (
+        (salaryRangeMin && !regex.test(salaryRangeMin)) ||
+        (salaryRangeMax && !regex.test(salaryRangeMax))
+      ) {
+        payErrorMessage.style.display = 'inline';
+        isValid = false;
+      } else if (
+        salaryRangeMin &&
+        salaryRangeMax &&
+        parseFloat(salaryRangeMin) > parseFloat(salaryRangeMax)
+      ) {
+        // Additional check: min shouldn't be greater than max
+        payErrorMessage.textContent =
+          'Minimum salary cannot be greater than maximum salary';
+        payErrorMessage.style.display = 'inline';
+        isValid = false;
+      } else {
+        payErrorMessage.textContent =
+          'Please enter a valid amount with up to two decimal places.';
+        payErrorMessage.style.display = 'none';
+      }
     }
 
     submitApplicationButton.disabled = !isValid;
+    return isValid;
   }
 
   async function fetchPersonalInformation(userCode) {
@@ -603,6 +1012,74 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error('Error logging job application:', error);
       return false;
+    }
+  }
+
+  function initializeCurrencyDropdown() {
+    // Check if validCurrencies exists (from currencies.js)
+    if (typeof validCurrencies !== 'undefined') {
+      // Clear existing options except USD (which we keep as default)
+      currencyOptions.innerHTML =
+        '<div class="custom-option selected" data-value="USD">USD - US Dollar</div>';
+
+      // Add all currencies except USD (since we already have it)
+      validCurrencies.forEach((currencyCode) => {
+        if (currencyCode !== 'USD') {
+          try {
+            let label = currencyCode;
+            // Try to get formatted currency name if available
+            try {
+              const formatter = new Intl.DisplayNames(['en'], {
+                type: 'currency',
+              });
+              label = `${currencyCode} - ${formatter.of(currencyCode)}`;
+            } catch (error) {
+              // Fallback if Intl.DisplayNames is not supported
+            }
+
+            const option = document.createElement('div');
+            option.className = 'custom-option';
+            option.setAttribute('data-value', currencyCode);
+            option.textContent = label;
+            currencyOptions.appendChild(option);
+          } catch (error) {
+            console.error(`Error adding currency ${currencyCode}:`, error);
+          }
+        }
+      });
+
+      // Add event listeners to the currency options
+      document
+        .querySelectorAll('#currencyOptions .custom-option')
+        .forEach((option) => {
+          option.addEventListener('click', function () {
+            const select = this.closest('.custom-select');
+            const trigger = select.querySelector(
+              '.custom-select-trigger .custom-select-value'
+            );
+            const hiddenInput = select.nextElementSibling;
+
+            // Update the visible value and hidden input
+            trigger.textContent = this.getAttribute('data-value');
+            hiddenInput.value = this.getAttribute('data-value');
+
+            // Mark this option as selected
+            select.querySelectorAll('.custom-option').forEach((opt) => {
+              opt.classList.remove('selected');
+            });
+            this.classList.add('selected');
+
+            // Close the dropdown
+            select.classList.remove('open');
+
+            // Trigger a change event on the hidden input
+            const changeEvent = new Event('input', { bubbles: true });
+            hiddenInput.dispatchEvent(changeEvent);
+          });
+        });
+    } else {
+      console.warn('validCurrencies not loaded yet, will retry');
+      setTimeout(initializeCurrencyDropdown, 100);
     }
   }
 
@@ -693,6 +1170,13 @@ document.addEventListener('DOMContentLoaded', () => {
         fn(...args);
       }, delay);
     };
+  }
+
+  function isValidSalaryData(value) {
+    if (!value) return false;
+
+    const num = parseFloat(value);
+    return !isNaN(num) && isFinite(num) && num > 0;
   }
 
   function getWebsiteHostDisplayName(host) {
@@ -870,499 +1354,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
+  initializeCurrencyDropdown();
   resizePopup();
-
-  async function fillJobApplicationForm(personalInfo) {
-    const fieldValues = {
-      addressLine1: personalInfo.streetAddress1 || '',
-      addressLine2: personalInfo.streetAddress2 || '',
-      addressLine3: personalInfo.streetAddress3 || '',
-      authorizedToWork: personalInfo.authorizedForWorkInUnitedStates || 'no',
-      city: personalInfo.city || '',
-      country: personalInfo.country || '',
-      county: personalInfo.county || '',
-      currentCompany: personalInfo.currentCompany || '',
-      currentLocation: `${personalInfo.city || ''}, ${
-        personalInfo.state || ''
-      }`,
-      currentTitle: personalInfo.currentTitle || '',
-      email: personalInfo.email || '',
-      expectedSalary: '',
-      firstName: personalInfo.firstName || '',
-      hasBachelorDegree: personalInfo.hasBachelorDegree || 'no',
-      lastName: personalInfo.lastName || '',
-      linkedin: personalInfo.linkedIn || '',
-      middleName: personalInfo.middleName || '',
-      name: `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`,
-      phone: personalInfo.phone || '',
-      phoneCountryCode: personalInfo.phoneCountryCode || '',
-      requireSponsorship: personalInfo.requiresVisaSponsorship || 'no',
-      state: personalInfo.state || '',
-      title: personalInfo.title || '',
-      zip: personalInfo.postalCode || '',
-    };
-
-    const fieldNames = {
-      addressLine1: [
-        'address line 1',
-        'address1',
-        'street address 1',
-        'street address',
-        'address line',
-        'addr line 1',
-        'addr1',
-        'street 1',
-        'addr line one',
-        'address line one',
-        'line 1 address',
-        'address line first',
-        'primary address line',
-        'address primary',
-        'address first',
-      ],
-      addressLine2: [
-        'address line 2',
-        'address2',
-        'street address 2',
-        'addr line 2',
-        'addr2',
-        'street 2',
-        'addr line two',
-        'address line two',
-        'line 2 address',
-        'secondary address line',
-        'address secondary',
-        'address second',
-        'address supplemental',
-        'additional address',
-        'address additional',
-      ],
-      addressLine3: [
-        'address line 3',
-        'address3',
-        'street address 3',
-        'addr line 3',
-        'addr3',
-        'street 3',
-        'addr line three',
-        'address line three',
-        'line 3 address',
-        'tertiary address line',
-        'address tertiary',
-        'address third',
-        'address extra',
-        'additional address 3',
-        'extra address',
-      ],
-      authorizedToWork: [
-        'authorized to work',
-        'work authorization',
-        'work permit',
-        'authorized for employment',
-        'eligible to work',
-        'employment eligibility',
-        'right to work',
-        'work visa status',
-        'work authorization status',
-        'authorized for job',
-        'work eligibility',
-      ],
-      city: [
-        'city',
-        'town',
-        'municipality',
-        'locality',
-        'city name',
-        'town name',
-        'place',
-        'urban area',
-        'metropolis',
-        'borough',
-        'city/town',
-        'village',
-      ],
-      country: [
-        'country',
-        'nation',
-        'country name',
-        'nation name',
-        'country of residence',
-        'residence country',
-        'country of origin',
-        'home country',
-        'country living in',
-        'country code',
-      ],
-      county: [
-        'county',
-        'parish',
-        'district',
-        'region',
-        'subdivision',
-        'administrative region',
-        'borough',
-        'county/region',
-        'county/district',
-        'area',
-        'zone',
-        'territory',
-      ],
-      currentCompany: [
-        'current company',
-        'employer',
-        'current employer',
-        'present company',
-        'company name',
-        'organization',
-        'organization name',
-        'firm',
-        'workplace',
-        'current workplace',
-        'corporation',
-        'company of employment',
-        'current firm',
-        'current org',
-        'current organization',
-        'present employer',
-      ],
-      currentLocation: [
-        'current location',
-        'location',
-        'full address',
-        'full_address',
-        'complete address',
-        'place of residence',
-        'current address',
-        'present address',
-        'residential address',
-        'address now',
-        'current city',
-        'current town',
-        'where living now',
-        'address currently',
-      ],
-      currentTitle: [
-        'current title',
-        'job title',
-        'position',
-        'current position',
-        'job role',
-        'role',
-        'position title',
-        'employment title',
-        'designation',
-        'title at work',
-        'current job title',
-        'work title',
-      ],
-      email: [
-        'email',
-        'e-mail',
-        'confirm_email',
-        'email address',
-        'email_address',
-        'email id',
-        'mail',
-        'e-mail address',
-        'contact email',
-        'email id',
-        'emailid',
-        'primary email',
-        'secondary email',
-        'personal email',
-        'work email',
-      ],
-      expectedSalary: [
-        'expected salary',
-        'salary expectation',
-        'desired salary',
-        'salary desired',
-        'expected compensation',
-        'compensation expectation',
-        'desired compensation',
-        'salary requirement',
-        'salary expected',
-        'desired pay',
-        'pay expectation',
-        'compensation required',
-      ],
-      firstName: [
-        'first name',
-        'firstname',
-        'first_name',
-        'given name',
-        'forename',
-        'first',
-        'first name:',
-        'fname',
-        'initial name',
-        'first given name',
-        'primary name',
-        'legal first name',
-        'first legal name',
-      ],
-      hasBachelorDegree: [
-        'bachelor',
-        "bachelor's degree",
-        'undergraduate degree',
-        'bachelors',
-        'bachelor degree',
-        'BA',
-        'BS',
-        'b.sc',
-        'bachelor of arts',
-        'bachelor of science',
-        'college degree',
-        'university degree',
-        'undergrad degree',
-      ],
-      lastName: [
-        'last name',
-        'lastname',
-        'last_name',
-        'surname',
-        'family name',
-        'last',
-        'surname:',
-        'last name:',
-        'lname',
-        'second name',
-        'final name',
-        'legal last name',
-        'legal surname',
-      ],
-      linkedin: [
-        'linkedin',
-        'linkedin profile',
-        'linkedin url',
-        'linkedin link',
-        'linkedin account',
-        'profile link',
-        'linkedin profile link',
-        'linkedin address',
-        'linkedin profile address',
-      ],
-      middleName: [
-        'middle name',
-        'middlename',
-        'middle_name',
-        'middle',
-        'mid name',
-        'middle initial',
-        'middle name:',
-        'middle given name',
-        'secondary name',
-      ],
-      name: [
-        'name',
-        'full name',
-        'full name:',
-        'full_name',
-        'complete name',
-        'name',
-        'full',
-        'full legal name',
-        'name complete',
-        'entire name',
-        'name full',
-      ],
-      phone: [
-        'phone',
-        'phone number',
-        'telephone',
-        'mobile',
-        'cellphone',
-        'phone number:',
-        'contact number',
-        'contact phone',
-        'mobile number',
-        'telephone number',
-        'cell number',
-        'cell',
-        'mobile phone',
-        'phone:',
-        'contact:',
-        'phone no',
-        'phone #',
-        'tel',
-      ],
-      phoneCountryCode: [
-        'phone country code',
-        'country code',
-        'phone code',
-        'dialing code',
-        'phone international code',
-        'intl code',
-        'phone country prefix',
-        'country prefix',
-        'country dial code',
-        'dial code',
-      ],
-      requireSponsorship: [
-        'require sponsorship',
-        'sponsorship',
-        'sponsorship?',
-        'need sponsorship',
-        'require work sponsorship',
-        'sponsorship required',
-        'work visa sponsorship',
-        'work authorization sponsorship',
-        'job sponsorship',
-        'employment sponsorship',
-        'require visa sponsorship',
-        'requires visa sponsorship',
-      ],
-      state: [
-        'state',
-        'province',
-        'region',
-        'state/province',
-        'state/region',
-        'state or province',
-        'territory',
-        'state name',
-        'province name',
-        'state:',
-        'province:',
-        'state/territory',
-        'state/county',
-      ],
-      title: [
-        'title',
-        'salutation',
-        'prefix',
-        'honorific',
-        'title:',
-        'name title',
-        'professional title',
-        'courtesy title',
-        'form of address',
-        'title of respect',
-      ],
-      zip: [
-        'zip',
-        'zipcode',
-        'postal code',
-        'zip code',
-        'zip/postal code',
-        'postal/zip code',
-        'zip:',
-        'postal:',
-        'postcode',
-        'post code',
-        'zip code:',
-        'postal code:',
-        'zip/postcode',
-        'zip/postal',
-        'zip code/zip',
-      ],
-    };
-
-    const fieldsToSearch = [
-      'name',
-      'middleName',
-      'firstName',
-      'lastName',
-      'title',
-      'email',
-      'phone',
-      'phoneCountryCode',
-      'currentLocation',
-      'addressLine1',
-      'addressLine2',
-      'addressLine3',
-      'county',
-      'city',
-      'state',
-      'zip',
-      'country',
-      'linkedin',
-      'authorizedToWork',
-      'requireSponsorship',
-      'hasBachelorDegree',
-      'currentCompany',
-      'currentTitle',
-      'expectedSalary',
-    ];
-
-    const allLabels = Array.from(document.querySelectorAll('label'));
-    const allInputs = Array.from(
-      document.querySelectorAll('input, select, textarea')
-    );
-
-    const fillInputField = (input, value) => {
-      if (input.tagName.toLowerCase() === 'select') {
-        Array.from(input.options).forEach((option) => {
-          if (option.text.toLowerCase() === value.toLowerCase()) {
-            input.value = option.value;
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        });
-      } else if (input.type === 'radio' || input.type === 'checkbox') {
-        if (input.value.toLowerCase() === value.toLowerCase()) {
-          input.checked = true;
-          input.dispatchEvent(new Event('click', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      } else {
-        input.value = value;
-        input.dispatchEvent(new Event('click', { bubbles: true }));
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('blur', { bubbles: true }));
-      }
-    };
-
-    const matchAndFillFields = (fieldNames, fieldValues) => {
-      for (const key of fieldsToSearch) {
-        const aliases = fieldNames[key];
-        const value = fieldValues[key];
-
-        allLabels.forEach((label) => {
-          const labelText = label.textContent.trim().toLowerCase();
-          aliases.forEach((alias) => {
-            if (labelText.includes(alias)) {
-              const inputId = label.getAttribute('for');
-              const input = document.getElementById(inputId);
-              if (input) {
-                fillInputField(input, value);
-              }
-            }
-          });
-        });
-
-        allInputs.forEach((input) => {
-          const placeholder = input
-            .getAttribute('placeholder')
-            ?.trim()
-            .toLowerCase();
-          const nameAttr = input.getAttribute('name')?.trim().toLowerCase();
-          const idAttr = input.getAttribute('id')?.trim().toLowerCase();
-          const ariaLabel = input
-            .getAttribute('aria-label')
-            ?.trim()
-            .toLowerCase();
-
-          aliases.forEach((alias) => {
-            if (placeholder && placeholder.includes(alias)) {
-              fillInputField(input, value);
-            } else if (nameAttr && nameAttr.includes(alias)) {
-              fillInputField(input, value);
-            } else if (idAttr && idAttr.includes(alias)) {
-              fillInputField(input, value);
-            } else if (ariaLabel && ariaLabel.includes(alias)) {
-              fillInputField(input, value);
-            }
-          });
-        });
-      }
-    };
-
-    try {
-      matchAndFillFields(fieldNames, fieldValues);
-    } catch (error) {
-      console.error('Error in matching and filling fields:', error);
-    }
-
-    console.log('Form filling completed.');
-  }
 });
