@@ -5,9 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearCodeButton = document.getElementById('clearCode');
   const closeButton = document.getElementById('closeButton');
   const codeEntrySection = document.getElementById('codeEntrySection');
-  const companyDesirabilityInput = document.getElementById(
-    'companyDesireability'
-  );
   const companyLinkedinInput = document.getElementById('companyLinkedin');
   const companyNameInput = document.getElementById('companyName');
   const companySizeInput = document.getElementById('companySize');
@@ -220,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       [
         cityInput,
-        companyDesirabilityInput,
         companyLinkedinInput,
         companySizeInput,
         companyTypeInput,
@@ -272,7 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear all input fields
     [
       cityInput,
-      companyDesirabilityInput,
       companyLinkedinInput,
       companyNameInput,
       companySizeInput,
@@ -312,8 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
         value.textContent = 'Select company size';
       } else if (selectId === 'companyTypeWrapper') {
         value.textContent = 'Select company type';
-      } else if (selectId === 'companyDesireabilityWrapper') {
-        value.textContent = 'Select desirability';
       } else if (selectId === 'payFrequencyWrapper') {
         value.textContent = 'Select pay frequency';
       }
@@ -613,13 +606,6 @@ document.addEventListener('DOMContentLoaded', () => {
           jobDetails.companyDetails.type
         );
       }
-
-      if (jobDetails.companyDetails.desirability) {
-        setCustomSelectValue(
-          'companyDesireabilityWrapper',
-          jobDetails.companyDetails.desirability
-        );
-      }
     }
 
     if (jobDetails.notes) {
@@ -631,7 +617,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function clearAllFields() {
     [
       cityInput,
-      companyDesirabilityInput,
       companyLinkedinInput,
       companyNameInput,
       companySizeInput,
@@ -692,8 +677,6 @@ document.addEventListener('DOMContentLoaded', () => {
         value.textContent = 'Select company size';
       } else if (selectId === 'companyTypeWrapper') {
         value.textContent = 'Select company type';
-      } else if (selectId === 'companyDesireabilityWrapper') {
-        value.textContent = 'Select desirability';
       } else if (selectId === 'payFrequencyWrapper') {
         value.textContent = 'Select pay frequency';
       }
@@ -758,7 +741,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const city = cityInput.value;
-    const companyDesirability = companyDesirabilityInput.value;
     const companyLinkedin = companyLinkedinInput.value;
     const companyName = companyNameInput.value;
     const companySize = companySizeInput.value;
