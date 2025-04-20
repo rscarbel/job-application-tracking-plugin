@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const existingJobsList = document.getElementById('existingJobsList');
   const existingJobsSection = document.getElementById('existingJobs');
   const extraFields = document.getElementById('extraFields');
-  const fillApplicationButton = document.getElementById('fillApplication');
   const getAccessKeyButton = document.getElementById('getAccessKeyBtn');
   const industryInput = document.getElementById('industry');
   const jobDescriptionInput = document.getElementById('jobDescription');
@@ -384,58 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       alert('Please enter an access code.');
     }
-  });
-
-  fillApplicationButton.addEventListener('click', async () => {
-    await chrome.storage.sync.get('userCode', async (result) => {
-      if (!result.userCode) {
-        alert('User code not found. Please enter your code again.');
-        return;
-      }
-      fillApplicationButton.disabled = true;
-      fillApplicationButton.innerHTML =
-        '<i class="fa-solid fa-spinner"></i> Filling out application...';
-      const personalInformation = await fetchPersonalInformation(
-        result.userCode
-      );
-      if (!personalInformation) {
-        fillApplicationButton.disabled = false;
-        fillApplicationButton.innerHTML =
-          '<i class="fas fa-edit"></i> Fill Out Application';
-        return;
-      }
-      await chrome.tabs.query(
-        { active: true, lastFocusedWindow: true },
-        async (tabs) => {
-          if (tabs[0]) {
-            await chrome.scripting
-              .executeScript({
-                target: { tabId: tabs[0].id },
-                func: fillJobApplicationForm,
-                args: [personalInformation],
-              })
-              .then(() => {
-                fillApplicationButton.disabled = false;
-                fillApplicationButton.innerHTML =
-                  '<i class="fas fa-edit"></i> Fill Out Application';
-              })
-              .catch((error) => {
-                console.error('Error filling out the page:', error);
-                fillApplicationButton.disabled = false;
-                fillApplicationButton.innerHTML =
-                  '<i class="fas fa-edit"></i> Fill Out Application';
-              });
-          } else {
-            fillApplicationButton.disabled = false;
-            fillApplicationButton.innerHTML =
-              '<i class="fas fa-edit"></i> Fill Out Application';
-            alert(
-              'We cannot find the active tab. You cannot navigate to another tab or window after clicking the plugin icon. The plugin only is authorized to fill out forms on the active tab, which is found when you click the plugin icon while on the page you want to fill out. '
-            );
-          }
-        }
-      );
-    });
   });
 
   clearCodeButton.addEventListener('click', () => {
