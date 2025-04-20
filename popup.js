@@ -412,6 +412,16 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             await chrome.scripting.executeScript({
               target: { tabId: tab.id },
+              files: ['parser-utils.js'],
+            });
+
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['linkedin-parser.js'],
+            });
+
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
               files: ['detectJobDetails.js'],
             });
 
