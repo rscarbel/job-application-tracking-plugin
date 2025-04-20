@@ -40,7 +40,7 @@ async function detectJobDetails() {
         desirability: '',
       },
       source: domain,
-      notes: '',
+      jobDescription: '',
     };
 
     // Select the appropriate parser based on the domain

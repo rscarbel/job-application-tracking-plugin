@@ -618,8 +618,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (jobDetails.notes) {
-      notesInput.value = jobDetails.notes;
+    if (jobDetails.jobDescription) {
+      jobDescriptionInput.value = jobDetails.jobDescription;
     }
     validateForm();
   }

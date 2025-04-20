@@ -246,12 +246,12 @@ async function linkedinParser(defaultJobDetails) {
       }
     });
 
-    // Extract job description/notes
+    // Extract job description
     const jobDescriptionElement = document.querySelector(
       '.jobs-description__content, .jobs-description-content__text'
     );
     if (jobDescriptionElement) {
-      jobDetails.notes = jobDescriptionElement.textContent
+      jobDetails.jobDescription = jobDescriptionElement.textContent
         .trim()
         .replace(/\s+/g, ' ');
     }
