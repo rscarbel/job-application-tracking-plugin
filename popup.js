@@ -415,10 +415,16 @@ document.addEventListener('DOMContentLoaded', () => {
               files: ['parser-utils.js'],
             });
 
-            await chrome.scripting.executeScript({
-              target: { tabId: tab.id },
-              files: ['linkedin-parser.js'],
-            });
+            await Promise.all([
+              chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['linkedin-parser.js'],
+              }),
+              chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['indeed-parser.js'],
+              }),
+            ]);
 
             await chrome.scripting.executeScript({
               target: { tabId: tab.id },
