@@ -43,7 +43,6 @@ async function detectJobDetails() {
       jobDescription: '',
     };
 
-    // Select the appropriate parser based on the domain
     const parser = getParserForDomain(domain);
 
     if (!parser) {
@@ -51,10 +50,6 @@ async function detectJobDetails() {
       return null;
     }
 
-    console.log('Parser found:', parser);
-
-    // Execute the domain-specific parser
-    console.info(`Using parser for domain: ${domain}`);
     const jobDetails = await parser(defaultJobDetails);
 
     console.info('Job details detected:', jobDetails);
@@ -66,9 +61,6 @@ async function detectJobDetails() {
   }
 }
 
-// detectJobDetails.js
-
-// Modified getParserForDomain function to use global parsers
 function getParserForDomain(domain) {
   // Strip 'www.' prefix if present
   const normalizedDomain = domain.replace(/^www\./i, '');
@@ -128,7 +120,6 @@ async function zipRecruiterParser(defaultJobDetails) {
   try {
     // TODO: Implement ZipRecruiter-specific parsing logic
     console.info('ZipRecruiter parser not yet implemented');
-    // Fall back to generic parser for now
   } catch (error) {
     console.error('Error in ZipRecruiter parser:', error);
     return jobDetails;
@@ -141,7 +132,6 @@ async function diceParser(defaultJobDetails) {
   try {
     // TODO: Implement Dice-specific parsing logic
     console.info('Dice parser not yet implemented');
-    // Fall back to generic parser for now
   } catch (error) {
     console.error('Error in Dice parser:', error);
     return jobDetails;
@@ -154,7 +144,6 @@ async function wellfoundParser(defaultJobDetails) {
   try {
     // TODO: Implement Wellfound (formerly AngelList)-specific parsing logic
     console.info('Wellfound parser not yet implemented');
-    // Fall back to generic parser for now
   } catch (error) {
     console.error('Error in Wellfound parser:', error);
     return jobDetails;
@@ -167,12 +156,10 @@ async function simplyHiredParser(defaultJobDetails) {
   try {
     // TODO: Implement SimplyHired-specific parsing logic
     console.info('SimplyHired parser not yet implemented');
-    // Fall back to generic parser for now
   } catch (error) {
     console.error('Error in SimplyHired parser:', error);
     return jobDetails;
   }
 }
 
-// Export the main function so it can be used in popup.js
 window.detectJobDetails = detectJobDetails;

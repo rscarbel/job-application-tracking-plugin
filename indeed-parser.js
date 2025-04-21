@@ -17,10 +17,17 @@ async function indeedParser(defaultJobDetails) {
     console.info('Job ID:', jobId);
 
     let companyElement = document.querySelector(
-      '.jobsearch-JobInfoHeader-companyNameSimple'
+      '.jobsearch-JobInfoHeader-companyNameSimple, ' +
+        '.jobsearch-JobInfoHeader-companyNameLink'
     );
+
+    // If company name is in an anchor tag, get the text content
     if (companyElement) {
-      jobDetails.companyName = companyElement.textContent.trim().split('\n')[0];
+      jobDetails.companyName = companyElement.textContent.trim();
+      // Remove any trailing SVG icons or extra text
+      jobDetails.companyName = jobDetails.companyName
+        .split('\n')[0]
+        .split('\t')[0];
     }
 
     const jobTitleElement = document.querySelector(
@@ -36,14 +43,28 @@ async function indeedParser(defaultJobDetails) {
     if (locationElement) {
       const locationText = locationElement.textContent.trim();
 
+      // Split location by comma and space
       const locationParts = locationText.split(/,\s*/);
 
       if (locationParts.length >= 1) {
         jobDetails.location.city = locationParts[0].trim();
       }
 
+      // Handle state and potential zip code
       if (locationParts.length >= 2) {
-        jobDetails.location.state = locationParts[1].trim();
+        const stateZipText = locationParts[1].trim();
+        // Check if state includes a zip code (5 digits at the end)
+        const zipMatch = stateZipText.match(/\s*(\d{5})$/);
+
+        if (zipMatch) {
+          jobDetails.location.postalCode = zipMatch[1];
+          // Remove zip code from state
+          jobDetails.location.state = stateZipText
+            .replace(/\s*\d{5}$/, '')
+            .trim();
+        } else {
+          jobDetails.location.state = stateZipText;
+        }
       }
 
       if (locationParts.length >= 3) {
@@ -51,19 +72,28 @@ async function indeedParser(defaultJobDetails) {
       }
     }
 
+    // Extract salary - make selector specific to avoid sidebar matches
     const salaryElement = document.querySelector(
-      '[data-testid="attribute_snippet_testid"] div:has(> span:first-child):not(:has(.metadata)),' +
-        '[data-testid="attribute_snippet_testid"] div.css-18z4q2i,' +
-        '.metadata.salary-snippet-container div[data-testid*="salary"],' +
-        '.metadata.salary-snippet-container .css-18z4q2i,' +
-        '.metadata.salary-snippet-container .css-ws1fr0,' +
-        '#salaryInfoAndJobType span,' +
-        '.jobsearch-JobMetadataHeader-item:has(.salary-icon)'
+      '.jobsearch-JobComponent .metadata.salary-snippet-container [data-testid="attribute_snippet_testid"], ' +
+        '.jobsearch-JobComponent .jobsearch-JobMetadataHeader-item:has(.salary-icon) .icl-u-xs-mr--xs'
     );
 
-    if (salaryElement) {
-      const salaryText = salaryElement.textContent.trim();
+    // Also check if there's salary info in a more specific container
+    const specificSalaryContainer = document.querySelector(
+      '.jobsearch-JobComponent [data-testid="attribute_snippet_testid prefmatch_container_testid"]:has(svg[aria-label*="matches your preference"])'
+    );
 
+    let salaryText = '';
+    if (
+      specificSalaryContainer &&
+      specificSalaryContainer.textContent.includes('$')
+    ) {
+      salaryText = specificSalaryContainer.textContent.trim();
+    } else if (salaryElement) {
+      salaryText = salaryElement.textContent.trim();
+    }
+
+    if (salaryText && salaryText.includes('$')) {
       const salaryRangePattern =
         /\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to)\s*\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:a|per)?\s*(hour|hr|yr|year|annually|monthly|month|week|wk|day)?/i;
       const salaryMatch = salaryText.match(salaryRangePattern);
@@ -133,6 +163,9 @@ async function indeedParser(defaultJobDetails) {
           }
         }
       }
+    } else {
+      // Reset pay frequencies if no salary found
+      jobDetails.compensation.payFrequency = '';
     }
 
     const jobDescriptionElement = document.getElementById('jobDescriptionText');
