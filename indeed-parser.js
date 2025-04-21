@@ -11,7 +11,7 @@ async function indeedParser(defaultJobDetails) {
   try {
     console.info('Parsing Indeed job posting');
 
-    // Extract job ID from URL
+    const isIndivdualJobPage = domain.includes('viewJob?jk=');
     const jobIdMatch = domain.match(/vjk=([a-zA-Z0-9]+)/);
     const jobId = jobIdMatch ? jobIdMatch[1] : null;
     console.info('Job ID:', jobId);
@@ -51,8 +51,6 @@ async function indeedParser(defaultJobDetails) {
       }
     }
 
-    // 4. Fix salary extraction
-    // REPLACE SECTION starting from line 97:
     const salaryElement = document.querySelector(
       '[data-testid="attribute_snippet_testid"] div:has(> span:first-child):not(:has(.metadata)),' +
         '[data-testid="attribute_snippet_testid"] div.css-18z4q2i,' +
@@ -66,7 +64,6 @@ async function indeedParser(defaultJobDetails) {
     if (salaryElement) {
       const salaryText = salaryElement.textContent.trim();
 
-      // Handle salary ranges
       const salaryRangePattern =
         /\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to)\s*\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:a|per)?\s*(hour|hr|yr|year|annually|monthly|month|week|wk|day)?/i;
       const salaryMatch = salaryText.match(salaryRangePattern);
@@ -87,7 +84,6 @@ async function indeedParser(defaultJobDetails) {
         jobDetails.compensation.salaryRangeMin = minSalary.toString();
         jobDetails.compensation.salaryRangeMax = maxSalary.toString();
 
-        // Set pay frequency
         const frequencyText = salaryMatch[3]
           ? salaryMatch[3].toLowerCase()
           : '';
@@ -105,7 +101,6 @@ async function indeedParser(defaultJobDetails) {
           jobDetails.compensation.payFrequency = 'ANNUALLY';
         }
       } else {
-        // Try to handle single salary values
         const singleSalaryPattern =
           /\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:a|per)?\s*(hour|hr|yr|year|annually|monthly|month|week|wk|day)?/i;
         const singleSalaryMatch = salaryText.match(singleSalaryPattern);
@@ -121,7 +116,6 @@ async function indeedParser(defaultJobDetails) {
 
           jobDetails.compensation.payAmount = salary.toString();
 
-          // Set pay frequency for single salary
           const frequencyText = singleSalaryMatch[2]
             ? singleSalaryMatch[2].toLowerCase()
             : '';
@@ -141,30 +135,23 @@ async function indeedParser(defaultJobDetails) {
       }
     }
 
-    // 5. Fix job description extraction
-    // REPLACE SECTION starting from line 186:
     const jobDescriptionElement = document.getElementById('jobDescriptionText');
     if (jobDescriptionElement) {
-      // Get the full job description text, cleaning up whitespace
       jobDetails.jobDescription = jobDescriptionElement.innerText
         .trim()
-        .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with just two
-        .replace(/^\s+/gm, ''); // Remove leading whitespace from each line
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/^\s+/gm, '');
     }
 
-    // 6. Fix website detection
-    // REPLACE SECTION starting from line 195:
     const jobDescriptionText = jobDescriptionElement
       ? jobDescriptionElement.textContent
       : '';
 
-    // Look for URLs in the job description
     const websitePattern =
       /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)/gi;
     const websiteMatches = [...jobDescriptionText.matchAll(websitePattern)];
 
     if (websiteMatches.length > 0) {
-      // Prioritize website URLs that match the company name
       const companyName = jobDetails.companyName
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '');
@@ -173,12 +160,10 @@ async function indeedParser(defaultJobDetails) {
         const fullUrl = match[0];
         const lowerUrl = fullUrl.toLowerCase();
 
-        // First check if the company name is in the URL
         if (lowerUrl.includes(companyName)) {
           return true;
         }
 
-        // If not, check for common excludes
         return (
           !lowerUrl.includes('linkedin.com') &&
           !lowerUrl.includes('indeed.com') &&
@@ -198,9 +183,6 @@ async function indeedParser(defaultJobDetails) {
           : `https://${websiteUrl}`;
       }
     }
-
-    // 7. Fix industry detection
-    // REPLACE SECTION starting from line 235:
     const industryKeywords = {
       HEALTHCARE: [
         'healthcare',
@@ -299,5 +281,4 @@ async function indeedParser(defaultJobDetails) {
   }
 }
 
-// Make the parser available globally
 window.indeedParser = indeedParser;

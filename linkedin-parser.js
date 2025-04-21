@@ -299,12 +299,10 @@ async function linkedinParser(defaultJobDetails) {
         }
       }
 
-      // Try to determine industry
       const industryElement = companyInfoSection.querySelector('.t-14');
       if (industryElement) {
         const industryText = industryElement.childNodes[0].textContent.trim();
 
-        // Map common LinkedIn industry names to your enum values
         if (industryText.toLowerCase().includes('consulting')) {
           jobDetails.companyDetails.industry = 'CONSULTING';
         } else if (industryText.toLowerCase().includes('software')) {
@@ -317,16 +315,9 @@ async function linkedinParser(defaultJobDetails) {
           jobDetails.companyDetails.industry = 'HEALTHCARE';
         } else if (industryText.toLowerCase().includes('manufacturing')) {
           jobDetails.companyDetails.industry = 'MANUFACTURING';
-        } else if (
-          industryText.toLowerCase().includes('defense') ||
-          industryText.toLowerCase().includes('aerospace')
-        ) {
-          jobDetails.companyDetails.industry = 'DEFENSE'; // Using closest match from your enum
         }
-        // Add more industry mappings as needed
       }
 
-      // YOUR ORIGINAL COMPANY TYPE DETECTION LOGIC
       const descriptionText = companyInfoText;
       if (
         descriptionText.includes('consulting') ||
