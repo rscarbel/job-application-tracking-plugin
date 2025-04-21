@@ -1,9 +1,12 @@
 async function indeedParser(defaultJobDetails) {
   const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
-  const domain = window.location.href;
+  const domain = window.location.href.toLowerCase();
 
   // Check if we're on an Indeed job page
-  if (!domain.includes('indeed.com') || !domain.includes('vjk=')) {
+  if (
+    !domain.includes('indeed.com') ||
+    !(domain.includes('vjk=') || domain.includes('viewjob'))
+  ) {
     console.info('Not on an Indeed job posting page');
     return defaultJobDetails;
   }
@@ -11,7 +14,6 @@ async function indeedParser(defaultJobDetails) {
   try {
     console.info('Parsing Indeed job posting');
 
-    const isIndivdualJobPage = domain.includes('viewJob?jk=');
     const jobIdMatch = domain.match(/vjk=([a-zA-Z0-9]+)/);
     const jobId = jobIdMatch ? jobIdMatch[1] : null;
     console.info('Job ID:', jobId);
@@ -37,148 +39,223 @@ async function indeedParser(defaultJobDetails) {
       jobDetails.jobTitle = jobTitleElement.textContent.trim();
     }
 
+    // Extract location - need to handle different location formats
     const locationElement = document.querySelector(
       '[data-testid="jobsearch-JobInfoHeader-companyLocation"]'
     );
+
     if (locationElement) {
-      const locationText = locationElement.textContent.trim();
+      // First try the .css-1w32fcv container format
+      const locationContainer = locationElement.querySelector('.css-1w32fcv');
 
-      // Split location by comma and space
-      const locationParts = locationText.split(/,\s*/);
+      if (locationContainer) {
+        // Extract location from the city/state/zip element
+        const cityStateZipElement =
+          locationContainer.querySelector('.css-xb6x8x');
+        if (cityStateZipElement) {
+          // Clean up the location text by removing nested elements and extra spaces
+          const locationTextNode = cityStateZipElement.firstChild;
+          if (
+            locationTextNode &&
+            locationTextNode.nodeType === Node.TEXT_NODE
+          ) {
+            const locationText = locationTextNode.textContent.trim();
+            parseLocationText(locationText, jobDetails);
+          }
+        }
 
-      if (locationParts.length >= 1) {
-        jobDetails.location.city = locationParts[0].trim();
-      }
+        // Extract work mode from the separate text node (e.g., "Hybrid work")
+        const workModeNode = Array.from(locationContainer.childNodes).find(
+          (node) =>
+            node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== ''
+        );
 
-      // Handle state and potential zip code
-      if (locationParts.length >= 2) {
-        const stateZipText = locationParts[1].trim();
-        // Check if state includes a zip code (5 digits at the end)
-        const zipMatch = stateZipText.match(/\s*(\d{5})$/);
-
-        if (zipMatch) {
-          jobDetails.location.postalCode = zipMatch[1];
-          // Remove zip code from state
-          jobDetails.location.state = stateZipText
-            .replace(/\s*\d{5}$/, '')
-            .trim();
-        } else {
-          jobDetails.location.state = stateZipText;
+        if (workModeNode) {
+          const workModeText = workModeNode.textContent.trim().toLowerCase();
+          detectWorkMode(workModeText, jobDetails);
+        }
+      } else {
+        // Try direct format (e.g., "Chapel Hill, NC")
+        const locationTextElement =
+          locationElement.querySelector('.css-xb6x8x');
+        if (locationTextElement) {
+          const locationText = locationTextElement.textContent.trim();
+          parseLocationText(locationText, jobDetails);
         }
       }
+    }
 
-      if (locationParts.length >= 3) {
-        jobDetails.location.country = locationParts[2].trim();
+    // Helper function to parse location text
+    function parseLocationText(locationText, jobDetails) {
+      if (!locationText) return;
+
+      // Handle formats like "Durham, NC 27713" or "Chapel Hill, NC"
+      const locationMatch = locationText.match(
+        /^([^,]+),\s*([A-Z]{2})\s*(\d{5})?/
+      );
+      if (locationMatch) {
+        jobDetails.location.city = locationMatch[1].trim();
+        jobDetails.location.state = locationMatch[2].trim();
+        if (locationMatch[3]) {
+          jobDetails.location.postalCode = locationMatch[3].trim();
+        }
+      } else {
+        // Fallback: use simple split if no pattern matches
+        const locationParts = locationText.split(/,\s*/);
+        if (locationParts.length >= 1) {
+          jobDetails.location.city = locationParts[0].trim();
+        }
+        if (locationParts.length >= 2) {
+          jobDetails.location.state = locationParts[1].trim();
+        }
       }
     }
 
-    // Extract salary - make selector specific to avoid sidebar matches
-    const salaryElement = document.querySelector(
-      '.jobsearch-JobComponent .metadata.salary-snippet-container [data-testid="attribute_snippet_testid"], ' +
-        '.jobsearch-JobComponent .jobsearch-JobMetadataHeader-item:has(.salary-icon) .icl-u-xs-mr--xs'
-    );
-
-    // Also check if there's salary info in a more specific container
-    const specificSalaryContainer = document.querySelector(
-      '.jobsearch-JobComponent [data-testid="attribute_snippet_testid prefmatch_container_testid"]:has(svg[aria-label*="matches your preference"])'
-    );
-
-    let salaryText = '';
-    if (
-      specificSalaryContainer &&
-      specificSalaryContainer.textContent.includes('$')
-    ) {
-      salaryText = specificSalaryContainer.textContent.trim();
-    } else if (salaryElement) {
-      salaryText = salaryElement.textContent.trim();
+    // Helper function to detect work mode
+    function detectWorkMode(text, jobDetails) {
+      if (text.includes('hybrid')) {
+        jobDetails.jobDetails.workMode = 'HYBRID';
+      } else if (text.includes('remote')) {
+        jobDetails.jobDetails.workMode = 'REMOTE';
+      } else if (text.includes('on-site') || text.includes('onsite')) {
+        jobDetails.jobDetails.workMode = 'ONSITE';
+      }
     }
 
-    if (salaryText && salaryText.includes('$')) {
-      const salaryRangePattern =
-        /\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to)\s*\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:a|per)?\s*(hour|hr|yr|year|annually|monthly|month|week|wk|day)?/i;
-      const salaryMatch = salaryText.match(salaryRangePattern);
+    // First try to extract salary from the Pay section in Profile insights
+    const payButton = document.querySelector(
+      'button[data-testid^="$"][data-testid$="-tile"]'
+    );
+    const salaryText = payButton
+      ? payButton.getAttribute('data-testid').split('-tile')[0]
+      : '';
 
-      if (salaryMatch) {
-        let minSalary = salaryMatch[1].replace(/,/g, '');
-        let maxSalary = salaryMatch[2].replace(/,/g, '');
+    if (salaryText.includes('$')) {
+      extractSalaryInfo(salaryText, jobDetails);
+    } else {
+      // If not found in buttons, look for salary info in the job description
+      const jobDescriptionElement =
+        document.getElementById('jobDescriptionText');
+      if (jobDescriptionElement) {
+        const descriptionText = jobDescriptionElement.textContent;
 
-        // Handle K notation
-        if (salaryText.match(/[kK]/)) {
-          minSalary = parseFloat(minSalary) * 1000;
-          maxSalary = parseFloat(maxSalary) * 1000;
-        } else {
-          minSalary = parseFloat(minSalary);
-          maxSalary = parseFloat(maxSalary);
+        // Look for salary patterns in the description
+        const salaryPatterns = [
+          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to|–)\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:\/(?:yr|year|month|mo|week|wk|hour|hr|annually))?/i,
+          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:\/(?:yr|year|month|mo|week|wk|hour|hr|annually))?/i,
+          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:per|\/)\s*(?:hour|hr|month|mo|year|yr|week|wk|annually)/i,
+          /(?:compensation|salary|pay):\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to|–)\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?/i,
+        ];
+
+        for (const pattern of salaryPatterns) {
+          const salaryMatch = descriptionText.match(pattern);
+          if (salaryMatch) {
+            extractSalaryInfo(salaryMatch[0], jobDetails);
+            break;
+          }
+        }
+      }
+    }
+
+    // Helper function to extract salary information
+    function extractSalaryInfo(salaryText, jobDetails) {
+      // Parse salary ranges (e.g., "$150,000-175,000", "$150k to $175k")
+      const rangePattern =
+        /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to|–)\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?/i;
+      const rangeMatch = salaryText.match(rangePattern);
+
+      if (rangeMatch) {
+        let minSalary = parseFloat(rangeMatch[1].replace(/,/g, ''));
+        let maxSalary = parseFloat(rangeMatch[2].replace(/,/g, ''));
+
+        // Handle 'k' notation
+        if (salaryText.toLowerCase().includes(rangeMatch[1] + 'k')) {
+          minSalary *= 1000;
+        }
+        if (salaryText.toLowerCase().includes(rangeMatch[2] + 'k')) {
+          maxSalary *= 1000;
         }
 
         jobDetails.compensation.salaryRangeMin = minSalary.toString();
         jobDetails.compensation.salaryRangeMax = maxSalary.toString();
-
-        const frequencyText = salaryMatch[3]
-          ? salaryMatch[3].toLowerCase()
-          : '';
-        if (frequencyText.includes('hour') || frequencyText.includes('hr')) {
-          jobDetails.compensation.payFrequency = 'HOURLY';
-        } else if (frequencyText.includes('month')) {
-          jobDetails.compensation.payFrequency = 'MONTHLY';
-        } else if (
-          frequencyText.includes('week') ||
-          frequencyText.includes('wk')
-        ) {
-          jobDetails.compensation.payFrequency = 'WEEKLY';
-        } else {
-          // Default to annually for "a year", "year", "yr", or no frequency specified
-          jobDetails.compensation.payFrequency = 'ANNUALLY';
-        }
       } else {
-        const singleSalaryPattern =
-          /\$?(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:a|per)?\s*(hour|hr|yr|year|annually|monthly|month|week|wk|day)?/i;
-        const singleSalaryMatch = salaryText.match(singleSalaryPattern);
+        // Parse single values (e.g., "$18/hr", "$125k/year", "$50,000.00")
+        const singlePattern =
+          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:\/|per)?\s*(hour|hr|yr|year|annually|month|mo|week|wk|day)?/i;
+        const singleMatch = salaryText.match(singlePattern);
 
-        if (singleSalaryMatch) {
-          let salary = singleSalaryMatch[1].replace(/,/g, '');
+        if (singleMatch) {
+          let salary = parseFloat(singleMatch[1].replace(/,/g, ''));
 
-          if (salaryText.match(/[kK]/)) {
-            salary = parseFloat(salary) * 1000;
-          } else {
-            salary = parseFloat(salary);
+          // Handle 'k' notation
+          if (salaryText.toLowerCase().includes(singleMatch[1] + 'k')) {
+            salary *= 1000;
           }
 
           jobDetails.compensation.payAmount = salary.toString();
-
-          const frequencyText = singleSalaryMatch[2]
-            ? singleSalaryMatch[2].toLowerCase()
-            : '';
-          if (frequencyText.includes('hour') || frequencyText.includes('hr')) {
-            jobDetails.compensation.payFrequency = 'HOURLY';
-          } else if (frequencyText.includes('month')) {
-            jobDetails.compensation.payFrequency = 'MONTHLY';
-          } else if (
-            frequencyText.includes('week') ||
-            frequencyText.includes('wk')
-          ) {
-            jobDetails.compensation.payFrequency = 'WEEKLY';
-          } else {
-            jobDetails.compensation.payFrequency = 'ANNUALLY';
-          }
         }
       }
-    } else {
-      // Reset pay frequencies if no salary found
-      jobDetails.compensation.payFrequency = '';
+
+      // Detect pay frequency
+      const frequencyPattern =
+        /(hour|hr|yr|year|annually|month|mo|week|wk|day)/i;
+      const frequencyMatch = salaryText.match(frequencyPattern);
+
+      if (frequencyMatch) {
+        const frequency = frequencyMatch[1].toLowerCase();
+        if (frequency.includes('hour') || frequency.includes('hr')) {
+          jobDetails.compensation.payFrequency = 'HOURLY';
+        } else if (frequency.includes('month') || frequency === 'mo') {
+          jobDetails.compensation.payFrequency = 'MONTHLY';
+        } else if (frequency.includes('week') || frequency === 'wk') {
+          jobDetails.compensation.payFrequency = 'WEEKLY';
+        } else {
+          jobDetails.compensation.payFrequency = 'ANNUALLY';
+        }
+      } else {
+        // Default to annual if no frequency specified
+        jobDetails.compensation.payFrequency = 'ANNUALLY';
+      }
     }
 
-    const jobDescriptionElement = document.getElementById('jobDescriptionText');
-    if (jobDescriptionElement) {
-      jobDetails.jobDescription = jobDescriptionElement.innerText
-        .trim()
-        .replace(/\n{3,}/g, '\n\n')
-        .replace(/^\s+/gm, '');
+    // Extract work type from the Job type section in Profile insights
+    const fullTimeButton = document.querySelector(
+      'button[data-testid="Full-time-tile"]'
+    );
+    if (fullTimeButton) {
+      const workTypeText = fullTimeButton
+        .getAttribute('data-testid')
+        .replace('-tile', '')
+        .toLowerCase();
+
+      if (workTypeText === 'full-time') {
+        jobDetails.jobDetails.workType = 'FULL_TIME';
+      } else if (workTypeText === 'part-time') {
+        jobDetails.jobDetails.workType = 'PART_TIME';
+      } else if (workTypeText === 'contract') {
+        jobDetails.jobDetails.workType = 'CONTRACT';
+      } else if (workTypeText === 'temporary') {
+        jobDetails.jobDetails.workType = 'TEMPORARY';
+      } else if (workTypeText === 'internship') {
+        jobDetails.jobDetails.workType = 'INTERNSHIP';
+      }
     }
 
-    const jobDescriptionText = jobDescriptionElement
-      ? jobDescriptionElement.textContent
-      : '';
+    // Get the job description next
+    const jobDescriptionText = getJobDescription();
+
+    function getJobDescription() {
+      const jobDescriptionElement =
+        document.getElementById('jobDescriptionText');
+      if (jobDescriptionElement) {
+        jobDetails.jobDescription = jobDescriptionElement.innerText
+          .trim()
+          .replace(/\n{3,}/g, '\n\n')
+          .replace(/^\s+/gm, '');
+        return jobDescriptionElement.textContent;
+      }
+      return '';
+    }
 
     const websitePattern =
       /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)/gi;
