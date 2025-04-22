@@ -2,7 +2,6 @@ async function indeedParser(defaultJobDetails) {
   const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
   const domain = window.location.href.toLowerCase();
 
-  // Check if we're on an Indeed job page
   if (
     !domain.includes('indeed.com') ||
     !(domain.includes('vjk=') || domain.includes('viewjob'))
@@ -39,7 +38,6 @@ async function indeedParser(defaultJobDetails) {
       jobDetails.jobTitle = jobTitleElement.textContent.trim();
     }
 
-    // Extract location - need to handle different location formats
     const locationElement = document.querySelector(
       '[data-testid="jobsearch-JobInfoHeader-companyLocation"]'
     );
@@ -60,7 +58,12 @@ async function indeedParser(defaultJobDetails) {
             locationTextNode.nodeType === Node.TEXT_NODE
           ) {
             const locationText = locationTextNode.textContent.trim();
-            parseLocationText(locationText, jobDetails);
+            const locationData =
+              window.parserUtils.parseLocationText(locationText);
+            jobDetails.location.city = locationData.city;
+            jobDetails.location.state = locationData.state;
+            jobDetails.location.postalCode = locationData.postalCode;
+            jobDetails.location.country = locationData.country;
           }
         }
 
@@ -71,8 +74,9 @@ async function indeedParser(defaultJobDetails) {
         );
 
         if (workModeNode) {
-          const workModeText = workModeNode.textContent.trim().toLowerCase();
-          detectWorkMode(workModeText, jobDetails);
+          const workModeText = workModeNode.textContent.trim();
+          jobDetails.jobDetails.workMode =
+            window.parserUtils.detectWorkMode(workModeText);
         }
       } else {
         // Try direct format (e.g., "Chapel Hill, NC")
@@ -80,50 +84,18 @@ async function indeedParser(defaultJobDetails) {
           locationElement.querySelector('.css-xb6x8x');
         if (locationTextElement) {
           const locationText = locationTextElement.textContent.trim();
-          parseLocationText(locationText, jobDetails);
+          const locationData =
+            window.parserUtils.parseLocationText(locationText);
+          jobDetails.location.city = locationData.city;
+          jobDetails.location.state = locationData.state;
+          jobDetails.location.postalCode = locationData.postalCode;
+          jobDetails.location.country = locationData.country;
         }
       }
     }
 
-    // Helper function to parse location text
-    function parseLocationText(locationText, jobDetails) {
-      if (!locationText) return;
-
-      // Handle formats like "Durham, NC 27713" or "Chapel Hill, NC"
-      const locationMatch = locationText.match(
-        /^([^,]+),\s*([A-Z]{2})\s*(\d{5})?/
-      );
-      if (locationMatch) {
-        jobDetails.location.city = locationMatch[1].trim();
-        jobDetails.location.state = locationMatch[2].trim();
-        if (locationMatch[3]) {
-          jobDetails.location.postalCode = locationMatch[3].trim();
-        }
-      } else {
-        // Fallback: use simple split if no pattern matches
-        const locationParts = locationText.split(/,\s*/);
-        if (locationParts.length >= 1) {
-          jobDetails.location.city = locationParts[0].trim();
-        }
-        if (locationParts.length >= 2) {
-          jobDetails.location.state = locationParts[1].trim();
-        }
-      }
-    }
-
-    // Helper function to detect work mode
-    function detectWorkMode(text, jobDetails) {
-      if (text.includes('hybrid')) {
-        jobDetails.jobDetails.workMode = 'HYBRID';
-      } else if (text.includes('remote')) {
-        jobDetails.jobDetails.workMode = 'REMOTE';
-      } else if (text.includes('on-site') || text.includes('onsite')) {
-        jobDetails.jobDetails.workMode = 'ONSITE';
-      }
-    }
     let salaryInfo = {};
 
-    // First try to extract salary from the Pay section in Profile insights
     const payButton = document.querySelector(
       'button[data-testid^="$"][data-testid$="-tile"]'
     );
@@ -155,168 +127,41 @@ async function indeedParser(defaultJobDetails) {
       }
     }
 
-    // Extract work type from the Job type section in Profile insights
     const fullTimeButton = document.querySelector(
       'button[data-testid="Full-time-tile"]'
     );
     if (fullTimeButton) {
       const workTypeText = fullTimeButton
         .getAttribute('data-testid')
-        .replace('-tile', '')
-        .toLowerCase();
+        .replace('-tile', '');
 
-      if (workTypeText === 'full-time') {
-        jobDetails.jobDetails.workType = 'FULL_TIME';
-      } else if (workTypeText === 'part-time') {
-        jobDetails.jobDetails.workType = 'PART_TIME';
-      } else if (workTypeText === 'contract') {
-        jobDetails.jobDetails.workType = 'CONTRACT';
-      } else if (workTypeText === 'temporary') {
-        jobDetails.jobDetails.workType = 'TEMPORARY';
-      } else if (workTypeText === 'internship') {
-        jobDetails.jobDetails.workType = 'INTERNSHIP';
-      }
+      jobDetails.jobDetails.workType =
+        window.parserUtils.detectWorkType(workTypeText);
     }
 
-    // Get the job description next
-    const jobDescriptionText = getJobDescription();
+    const jobDescriptionElement = document.getElementById('jobDescriptionText');
+    if (jobDescriptionElement) {
+      const jobDescriptionText = jobDescriptionElement.innerText
+        .trim()
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/^\s+/gm, '');
 
-    function getJobDescription() {
-      const jobDescriptionElement =
-        document.getElementById('jobDescriptionText');
-      if (jobDescriptionElement) {
-        jobDetails.jobDescription = jobDescriptionElement.innerText
-          .trim()
-          .replace(/\n{3,}/g, '\n\n')
-          .replace(/^\s+/gm, '');
-        return jobDescriptionElement.textContent;
-      }
-      return '';
-    }
+      jobDetails.jobDescription = jobDescriptionText;
 
-    const websitePattern =
-      /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)/gi;
-    const websiteMatches = [...jobDescriptionText.matchAll(websitePattern)];
-
-    if (websiteMatches.length > 0) {
-      const companyName = jobDetails.companyName
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '');
-
-      const companyWebsite = websiteMatches.find((match) => {
-        const fullUrl = match[0];
-        const lowerUrl = fullUrl.toLowerCase();
-
-        if (lowerUrl.includes(companyName)) {
-          return true;
-        }
-
-        return (
-          !lowerUrl.includes('linkedin.com') &&
-          !lowerUrl.includes('indeed.com') &&
-          !lowerUrl.includes('facebook.com') &&
-          !lowerUrl.includes('twitter.com') &&
-          !lowerUrl.includes('instagram.com') &&
-          !lowerUrl.includes('youtube.com') &&
-          !lowerUrl.includes('github.com') &&
-          !lowerUrl.includes('example.com')
+      if (jobDetails.companyName) {
+        const companyWebsite = window.parserUtils.extractCompanyWebsite(
+          jobDescriptionText,
+          jobDetails.companyName
         );
-      });
 
-      if (companyWebsite) {
-        const websiteUrl = companyWebsite[0];
-        jobDetails.companyDetails.website = websiteUrl.startsWith('http')
-          ? websiteUrl
-          : `https://${websiteUrl}`;
+        if (companyWebsite) {
+          jobDetails.companyDetails.website = companyWebsite;
+        }
       }
-    }
-    const industryKeywords = {
-      HEALTHCARE: [
-        'healthcare',
-        'medical',
-        'hospital',
-        'health',
-        'HIPAA',
-        'clinical',
-        'patient',
-      ],
-      TECHNOLOGY: [
-        'technology',
-        'tech',
-        'software',
-        'IT',
-        'cloud',
-        'digital',
-        'SaaS',
-      ],
-      FINANCE: [
-        'finance',
-        'financial',
-        'banking',
-        'investment',
-        'accounting',
-        'insurance',
-      ],
-      CONSULTING: [
-        'consulting',
-        'advisory',
-        'professional services',
-        'consultancy',
-      ],
-      SOFTWARE: [
-        'software',
-        'development',
-        'programming',
-        'application',
-        'platform',
-      ],
-      TELECOMMUNICATIONS: [
-        'telecommunications',
-        'telecom',
-        'network',
-        'wireless',
-      ],
-      EDUCATION: [
-        'education',
-        'university',
-        'college',
-        'academic',
-        'school',
-        'learning',
-      ],
-      MANUFACTURING: ['manufacturing', 'production', 'industrial', 'factory'],
-      RETAIL: ['retail', 'store', 'sales', 'commerce', 'merchandise'],
-      ENGINEERING: ['engineering', 'engineer', 'technical'],
-      MEDIA: [
-        'media',
-        'advertising',
-        'marketing',
-        'communications',
-        'publishing',
-      ],
-      BIOTECHNOLOGY: [
-        'biotech',
-        'biotechnology',
-        'life sciences',
-        'pharmaceutical',
-      ],
-      ENERGY: ['energy', 'oil', 'gas', 'renewable', 'power', 'utilities'],
-      GOVERNMENT: [
-        'government',
-        'federal',
-        'state',
-        'public sector',
-        'municipal',
-      ],
-      ENTERTAINMENT: ['entertainment', 'gaming', 'music', 'film', 'television'],
-      AEROSPACE: ['aerospace', 'aviation', 'defense', 'military'],
-    };
 
-    const jobDescriptionLower = jobDescriptionText.toLowerCase();
-    for (const [industry, keywords] of Object.entries(industryKeywords)) {
-      if (keywords.some((keyword) => jobDescriptionLower.includes(keyword))) {
+      const industry = window.parserUtils.detectIndustry(jobDescriptionText);
+      if (industry) {
         jobDetails.companyDetails.industry = industry;
-        break;
       }
     }
 

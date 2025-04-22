@@ -266,10 +266,240 @@ function determinePayFrequency(text, amount) {
   return null;
 }
 
+function extractCompanyWebsite(text, companyName) {
+  const websitePattern =
+    /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)/gi;
+  const websiteMatches = [...text.matchAll(websitePattern)];
+
+  if (websiteMatches.length > 0) {
+    const normalizedCompanyName = companyName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+
+    const companyWebsite = websiteMatches.find((match) => {
+      const fullUrl = match[0];
+      const lowerUrl = fullUrl.toLowerCase();
+
+      if (lowerUrl.includes(normalizedCompanyName)) {
+        return true;
+      }
+
+      return (
+        !lowerUrl.includes('linkedin.com') &&
+        !lowerUrl.includes('indeed.com') &&
+        !lowerUrl.includes('facebook.com') &&
+        !lowerUrl.includes('twitter.com') &&
+        !lowerUrl.includes('instagram.com') &&
+        !lowerUrl.includes('youtube.com') &&
+        !lowerUrl.includes('github.com') &&
+        !lowerUrl.includes('example.com')
+      );
+    });
+
+    if (companyWebsite) {
+      const websiteUrl = companyWebsite[0];
+      return websiteUrl.startsWith('http')
+        ? websiteUrl
+        : `https://${websiteUrl}`;
+    }
+  }
+
+  return '';
+}
+
+function detectIndustry(jobDescription) {
+  const industryKeywords = {
+    HEALTHCARE: [
+      'healthcare',
+      'medical',
+      'hospital',
+      'health',
+      'HIPAA',
+      'clinical',
+      'patient',
+    ],
+    TECHNOLOGY: [
+      'technology',
+      'tech',
+      'software',
+      'IT',
+      'cloud',
+      'digital',
+      'SaaS',
+    ],
+    FINANCE: [
+      'finance',
+      'financial',
+      'banking',
+      'investment',
+      'accounting',
+      'insurance',
+    ],
+    CONSULTING: [
+      'consulting',
+      'advisory',
+      'professional services',
+      'consultancy',
+    ],
+    SOFTWARE: [
+      'software',
+      'development',
+      'programming',
+      'application',
+      'platform',
+    ],
+    TELECOMMUNICATIONS: [
+      'telecommunications',
+      'telecom',
+      'network',
+      'wireless',
+    ],
+    EDUCATION: [
+      'education',
+      'university',
+      'college',
+      'academic',
+      'school',
+      'learning',
+    ],
+    MANUFACTURING: ['manufacturing', 'production', 'industrial', 'factory'],
+    RETAIL: ['retail', 'store', 'sales', 'commerce', 'merchandise'],
+    ENGINEERING: ['engineering', 'engineer', 'technical'],
+    MEDIA: [
+      'media',
+      'advertising',
+      'marketing',
+      'communications',
+      'publishing',
+    ],
+    BIOTECHNOLOGY: [
+      'biotech',
+      'biotechnology',
+      'life sciences',
+      'pharmaceutical',
+    ],
+    ENERGY: ['energy', 'oil', 'gas', 'renewable', 'power', 'utilities'],
+    GOVERNMENT: [
+      'government',
+      'federal',
+      'state',
+      'public sector',
+      'municipal',
+    ],
+    ENTERTAINMENT: ['entertainment', 'gaming', 'music', 'film', 'television'],
+    AEROSPACE: ['aerospace', 'aviation', 'defense', 'military'],
+  };
+
+  const jobDescriptionLower = jobDescription.toLowerCase();
+  for (const [industry, keywords] of Object.entries(industryKeywords)) {
+    if (keywords.some((keyword) => jobDescriptionLower.includes(keyword))) {
+      return industry;
+    }
+  }
+
+  return '';
+}
+
+function parseLocationText(locationText) {
+  if (!locationText)
+    return { city: '', state: '', postalCode: '', country: '' };
+
+  // Handle formats like "Durham, NC 27713" or "Chapel Hill, NC"
+  const locationMatch = locationText.match(/^([^,]+),\s*([A-Z]{2})\s*(\d{5})?/);
+
+  if (locationMatch) {
+    return {
+      city: locationMatch[1].trim(),
+      state: locationMatch[2].trim(),
+      postalCode: locationMatch[3] ? locationMatch[3].trim() : '',
+      country: '',
+    };
+  } else {
+    // Handle more complex formats or international locations
+    const locationParts = locationText.split(/,\s*/);
+    const result = { city: '', state: '', postalCode: '', country: '' };
+
+    if (locationParts.length >= 1) {
+      result.city = locationParts[0].trim();
+    }
+
+    if (locationParts.length >= 2) {
+      // Check if second part has a postal code
+      const statePostalMatch = locationParts[1].match(/([A-Z]{2})\s*(\d{5})?/);
+      if (statePostalMatch) {
+        result.state = statePostalMatch[1].trim();
+        if (statePostalMatch[2]) {
+          result.postalCode = statePostalMatch[2].trim();
+        }
+      } else {
+        result.state = locationParts[1].trim();
+      }
+    }
+
+    if (locationParts.length >= 3) {
+      result.country = locationParts[2].trim();
+    }
+
+    return result;
+  }
+}
+
+function detectWorkMode(text) {
+  const lowerText = text.toLowerCase();
+
+  if (lowerText.includes('hybrid')) {
+    return 'HYBRID';
+  } else if (
+    lowerText.includes('remote') ||
+    lowerText.includes('work from home') ||
+    lowerText.includes('wfh')
+  ) {
+    return 'REMOTE';
+  } else if (
+    lowerText.includes('on-site') ||
+    lowerText.includes('onsite') ||
+    lowerText.includes('in office') ||
+    lowerText.includes('in-office')
+  ) {
+    return 'ONSITE';
+  }
+
+  return '';
+}
+
+function detectWorkType(text) {
+  const lowerText = text.toLowerCase();
+
+  if (lowerText.includes('full-time') || lowerText.includes('fulltime')) {
+    return 'FULL_TIME';
+  } else if (
+    lowerText.includes('part-time') ||
+    lowerText.includes('parttime')
+  ) {
+    return 'PART_TIME';
+  } else if (
+    lowerText.includes('contract') ||
+    lowerText.includes('contractor')
+  ) {
+    return 'CONTRACT';
+  } else if (lowerText.includes('temporary') || lowerText.includes('temp')) {
+    return 'TEMPORARY';
+  } else if (lowerText.includes('internship') || lowerText.includes('intern')) {
+    return 'INTERNSHIP';
+  }
+
+  return '';
+}
+
 window.parserUtils = {
   getTextFromElement,
   cleanText,
   extractWithRegex,
   determineCompanySize,
   parseSalaryInfo,
+  extractCompanyWebsite,
+  detectIndustry,
+  parseLocationText,
+  detectWorkMode,
+  detectWorkType,
 };

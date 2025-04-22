@@ -582,9 +582,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (jobDetails.jobDetails) {
-      if (jobDetails.jobDetails.industry) {
-        setCustomSelectValue('industryWrapper', jobDetails.jobDetails.industry);
+    if (jobDetails.companyDetails) {
+      if (jobDetails.companyDetails.industry) {
+        setCustomSelectValue(
+          'industryWrapper',
+          jobDetails.companyDetails.industry
+        );
       }
 
       if (jobDetails.jobDetails.workMode) {
