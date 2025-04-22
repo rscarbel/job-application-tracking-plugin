@@ -37,7 +37,6 @@ async function detectJobDetails() {
         linkedin: '',
         size: '',
         type: '',
-        desirability: '',
       },
       source: domain,
       jobDescription: '',

@@ -49,9 +49,227 @@ function determineCompanySize(numberOfEmployees) {
   }
 }
 
+function parseSalaryInfo(text) {
+  const lowercaseText = text.toLowerCase();
+
+  // First, check for obvious salary phrase
+  if (
+    /\$[\d,.]+ *- *\$[\d,.]+ (?:a|per) (?:year|hour|month|week)/i.test(text)
+  ) {
+    // Check if this clearly looks like a salary range (not a market value)
+    const salaryRangeMatch = text.match(
+      /\$([\d,.]+) *- *\$([\d,.]+) (?:a|per) (year|hour|month|week)/i
+    );
+
+    if (salaryRangeMatch) {
+      let min = parseFloat(salaryRangeMatch[1].replace(/,/g, ''));
+      let max = parseFloat(salaryRangeMatch[2].replace(/,/g, ''));
+      const period = salaryRangeMatch[3].toLowerCase();
+
+      // Convert to appropriate frequency
+      let frequency;
+      if (period === 'year') {
+        frequency = 'ANNUALLY';
+      } else if (period === 'hour') {
+        frequency = 'HOURLY';
+      } else if (period === 'month') {
+        frequency = 'MONTHLY';
+      } else if (period === 'week') {
+        frequency = 'WEEKLY';
+      }
+
+      // Double-check that these are realistic values
+      if (isRealisticSalary(min) && isRealisticSalary(max) && frequency) {
+        return {
+          salaryRangeMin: min.toString(),
+          salaryRangeMax: max.toString(),
+          payFrequency: frequency,
+        };
+      }
+    }
+  }
+
+  // Check for things that are definitely NOT salaries
+
+  // Check for "B" or "b" at the end of a number, possibly with a plus sign
+  if (/\$\d+\s*[bB]\+?/i.test(text)) {
+    return {};
+  }
+
+  // Check for "M" or "m" at the end of a number in contexts that suggest market size
+  if (/\$\d+\s*[mM]\+?.*(market|valuation|industry|cap)/i.test(text)) {
+    return {};
+  }
+
+  // Check for "annualized" specifically, which is a giveaway for market context
+  if (/\$\d+.*(annualized)/i.test(text)) {
+    return {};
+  }
+
+  // Check for market size mentions with common keywords
+  if (
+    /\$\d+\s*(?:[kmbt])?\+?\s*(?:market|industry|annualized|revenue|secondaries|equity)/i.test(
+      text
+    )
+  ) {
+    return {};
+  }
+
+  // Context detection for financial terms
+  const financialContextPattern =
+    /\$\d[\d,.]*\s*(?:[kmbt])?\+?(?:\s*[-+])?(?:\s*[\w\s]{0,30}(?:market|revenue|valuation|worth|budget|funding|investment|raise|industry|annualized|secondaries|equity))/i;
+
+  if (financialContextPattern.test(text)) {
+    return {};
+  }
+
+  // Handle salary ranges - this is original logic
+  const rangeRegex =
+    /\$\s*([\d,.]+)k?\s*(?:[-–—]|to|\bto\b)\s*\$?\s*([\d,.]+)k?(?!\s*(?:million|billion|trillion|m\b|b\b|t\b))/i;
+
+  const rangeMatch = text.match(rangeRegex);
+
+  if (rangeMatch) {
+    let min = rangeMatch[1].replace(/,/g, '');
+    let max = rangeMatch[2].replace(/,/g, '');
+
+    // Handle k notation (e.g., $50k)
+    if (min.endsWith('k')) {
+      min = parseFloat(min.slice(0, -1)) * 1000;
+    } else {
+      min = parseFloat(min);
+    }
+
+    if (max.endsWith('k')) {
+      max = parseFloat(max.slice(0, -1)) * 1000;
+    } else {
+      max = parseFloat(max);
+    }
+
+    if (!isRealisticSalary(min) || !isRealisticSalary(max)) {
+      return {};
+    }
+
+    const frequency = determinePayFrequency(lowercaseText, Math.min(min, max));
+
+    if (!frequency) {
+      return {};
+    }
+
+    return {
+      salaryRangeMin: min.toString(),
+      salaryRangeMax: max.toString(),
+      payFrequency: frequency,
+    };
+  }
+
+  // If no range found, look for single salary amount
+  // exclude non-salary indicators but don't be too restrictive
+  const amountRegex =
+    /\$\s*([\d,.]+)k?(?!\s*(?:[-–—]|to|\bto\b)\s*\$?)(?!\s*(?:million|billion|trillion))/i;
+
+  const amountMatch = text.match(amountRegex);
+
+  if (amountMatch) {
+    let amount = amountMatch[1].replace(/,/g, '');
+
+    if (amount.endsWith('k')) {
+      amount = parseFloat(amount.slice(0, -1)) * 1000;
+    } else {
+      amount = parseFloat(amount);
+    }
+
+    if (!isRealisticSalary(amount)) {
+      return {};
+    }
+
+    const frequency = determinePayFrequency(lowercaseText, amount);
+
+    // Only return salary info if we could determine a frequency
+    if (!frequency) {
+      return {};
+    }
+
+    return {
+      payAmount: amount.toString(),
+      payFrequency: frequency,
+    };
+  }
+
+  // No salary information found
+  return {};
+}
+
+function isRealisticSalary(amount) {
+  // Most realistic salaries would fall within these ranges
+  // For hourly wages: $7 to $200 per hour
+  // For annual salaries: $15,000 to $2,000,000
+
+  // If it's a very large number (like 100B) or very small, it's probably not a salary
+  if (amount > 2000000 || amount < 7) {
+    return false;
+  }
+
+  return true;
+}
+
+function determinePayFrequency(text, amount) {
+  if (!isRealisticSalary(amount)) {
+    return null;
+  }
+
+  const salaryIndicators =
+    /\b(?:salary|compensation|pay|wage|earning|offer|income|package)\b/i;
+  const compensationSection =
+    /\b(?:compensation|benefits|what\s+we\s+offer)\b/i;
+
+  // If we don't see compensation indicators and we're not in a compensation section
+  if (!salaryIndicators.test(text) && !compensationSection.test(text)) {
+    // Require stronger frequency indicators if not in clear salary context
+    const strongFrequencyIndicators =
+      /\b(?:per\s+hour|hourly\s+rate|yearly\s+salary|annual\s+income|per\s+year)\b/i;
+    if (!strongFrequencyIndicators.test(text)) {
+      return null;
+    }
+  }
+
+  // Check for explicit frequency mentions
+  if (/\b(?:per\s+hour|hour|hourly|hr)\b/i.test(text)) {
+    return 'HOURLY';
+  } else if (/\bweekly\b/i.test(text)) {
+    return 'WEEKLY';
+  } else if (/\b(?:bi-?weekly|every\s+(?:other|two)\s+weeks?)\b/i.test(text)) {
+    return 'BIWEEKLY';
+  } else if (/\b(?:month|monthly)\b/i.test(text)) {
+    return 'MONTHLY';
+  } else if (/\b(?:annual|annually|year|yearly|per\s+year)\b/i.test(text)) {
+    return 'ANNUALLY';
+  }
+
+  // If we're in a compensation section but no explicit frequency was found,
+  // make a more educated guess based on amount
+  if (compensationSection.test(text)) {
+    if (amount <= 150) {
+      return 'HOURLY';
+    } else if (amount <= 1000) {
+      return 'WEEKLY';
+    } else if (amount <= 5000) {
+      return 'BIWEEKLY';
+    } else if (amount <= 20000) {
+      return 'MONTHLY';
+    } else {
+      return 'ANNUALLY';
+    }
+  }
+
+  // this should be unreachable
+  return null;
+}
+
 window.parserUtils = {
   getTextFromElement,
   cleanText,
   extractWithRegex,
   determineCompanySize,
+  parseSalaryInfo,
 };

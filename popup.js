@@ -800,7 +800,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   userCode,
                   currency,
                   ...(city && { city }),
-                  ...(companyDesirability && { companyDesirability }),
                   ...(companyLinkedin && { companyLinkedin }),
                   ...(companySize && { companySize }),
                   ...(companyType && { companyType }),

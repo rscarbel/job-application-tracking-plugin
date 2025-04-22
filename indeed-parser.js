@@ -121,100 +121,37 @@ async function indeedParser(defaultJobDetails) {
         jobDetails.jobDetails.workMode = 'ONSITE';
       }
     }
+    let salaryInfo = {};
 
     // First try to extract salary from the Pay section in Profile insights
     const payButton = document.querySelector(
       'button[data-testid^="$"][data-testid$="-tile"]'
     );
-    const salaryText = payButton
-      ? payButton.getAttribute('data-testid').split('-tile')[0]
-      : '';
 
-    if (salaryText.includes('$')) {
-      extractSalaryInfo(salaryText, jobDetails);
-    } else {
-      // If not found in buttons, look for salary info in the job description
-      const jobDescriptionElement =
-        document.getElementById('jobDescriptionText');
-      if (jobDescriptionElement) {
-        const descriptionText = jobDescriptionElement.textContent;
-
-        // Look for salary patterns in the description
-        const salaryPatterns = [
-          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to|–)\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:\/(?:yr|year|month|mo|week|wk|hour|hr|annually))?/i,
-          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:\/(?:yr|year|month|mo|week|wk|hour|hr|annually))?/i,
-          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*(?:per|\/)\s*(?:hour|hr|month|mo|year|yr|week|wk|annually)/i,
-          /(?:compensation|salary|pay):\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to|–)\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?/i,
-        ];
-
-        for (const pattern of salaryPatterns) {
-          const salaryMatch = descriptionText.match(pattern);
-          if (salaryMatch) {
-            extractSalaryInfo(salaryMatch[0], jobDetails);
-            break;
-          }
+    if (payButton) {
+      const salaryText = payButton
+        .getAttribute('data-testid')
+        .split('-tile')[0];
+      if (salaryText.includes('$')) {
+        salaryInfo = window.parserUtils.parseSalaryInfo(salaryText);
+        if (Object.keys(salaryInfo).length > 0) {
+          // Apply all salary properties to the jobDetails
+          Object.assign(jobDetails.compensation, salaryInfo);
         }
       }
     }
 
-    // Helper function to extract salary information
-    function extractSalaryInfo(salaryText, jobDetails) {
-      // Parse salary ranges (e.g., "$150,000-175,000", "$150k to $175k")
-      const rangePattern =
-        /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:-|to|–)\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?/i;
-      const rangeMatch = salaryText.match(rangePattern);
-
-      if (rangeMatch) {
-        let minSalary = parseFloat(rangeMatch[1].replace(/,/g, ''));
-        let maxSalary = parseFloat(rangeMatch[2].replace(/,/g, ''));
-
-        // Handle 'k' notation
-        if (salaryText.toLowerCase().includes(rangeMatch[1] + 'k')) {
-          minSalary *= 1000;
+    // If not found in buttons, look for salary info in the job description
+    if (Object.keys(salaryInfo).length === 0) {
+      const jobDescriptionElement =
+        document.getElementById('jobDescriptionText');
+      if (jobDescriptionElement) {
+        const descriptionText = jobDescriptionElement.textContent;
+        salaryInfo = window.parserUtils.parseSalaryInfo(descriptionText);
+        if (Object.keys(salaryInfo).length > 0) {
+          // Apply all salary properties to the jobDetails
+          Object.assign(jobDetails.compensation, salaryInfo);
         }
-        if (salaryText.toLowerCase().includes(rangeMatch[2] + 'k')) {
-          maxSalary *= 1000;
-        }
-
-        jobDetails.compensation.salaryRangeMin = minSalary.toString();
-        jobDetails.compensation.salaryRangeMax = maxSalary.toString();
-      } else {
-        // Parse single values (e.g., "$18/hr", "$125k/year", "$50,000.00")
-        const singlePattern =
-          /\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?)[kK]?\s*(?:\/|per)?\s*(hour|hr|yr|year|annually|month|mo|week|wk|day)?/i;
-        const singleMatch = salaryText.match(singlePattern);
-
-        if (singleMatch) {
-          let salary = parseFloat(singleMatch[1].replace(/,/g, ''));
-
-          // Handle 'k' notation
-          if (salaryText.toLowerCase().includes(singleMatch[1] + 'k')) {
-            salary *= 1000;
-          }
-
-          jobDetails.compensation.payAmount = salary.toString();
-        }
-      }
-
-      // Detect pay frequency
-      const frequencyPattern =
-        /(hour|hr|yr|year|annually|month|mo|week|wk|day)/i;
-      const frequencyMatch = salaryText.match(frequencyPattern);
-
-      if (frequencyMatch) {
-        const frequency = frequencyMatch[1].toLowerCase();
-        if (frequency.includes('hour') || frequency.includes('hr')) {
-          jobDetails.compensation.payFrequency = 'HOURLY';
-        } else if (frequency.includes('month') || frequency === 'mo') {
-          jobDetails.compensation.payFrequency = 'MONTHLY';
-        } else if (frequency.includes('week') || frequency === 'wk') {
-          jobDetails.compensation.payFrequency = 'WEEKLY';
-        } else {
-          jobDetails.compensation.payFrequency = 'ANNUALLY';
-        }
-      } else {
-        // Default to annual if no frequency specified
-        jobDetails.compensation.payFrequency = 'ANNUALLY';
       }
     }
 
