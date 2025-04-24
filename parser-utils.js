@@ -307,99 +307,6 @@ function extractCompanyWebsite(text, companyName) {
   return '';
 }
 
-function detectIndustry(jobDescription) {
-  const industryKeywords = {
-    HEALTHCARE: [
-      'healthcare',
-      'medical',
-      'hospital',
-      'health',
-      'HIPAA',
-      'clinical',
-      'patient',
-    ],
-    TECHNOLOGY: [
-      'technology',
-      'tech',
-      'software',
-      'IT',
-      'cloud',
-      'digital',
-      'SaaS',
-    ],
-    FINANCE: [
-      'finance',
-      'financial',
-      'banking',
-      'investment',
-      'accounting',
-      'insurance',
-    ],
-    CONSULTING: [
-      'consulting',
-      'advisory',
-      'professional services',
-      'consultancy',
-    ],
-    SOFTWARE: [
-      'software',
-      'development',
-      'programming',
-      'application',
-      'platform',
-    ],
-    TELECOMMUNICATIONS: [
-      'telecommunications',
-      'telecom',
-      'network',
-      'wireless',
-    ],
-    EDUCATION: [
-      'education',
-      'university',
-      'college',
-      'academic',
-      'school',
-      'learning',
-    ],
-    MANUFACTURING: ['manufacturing', 'production', 'industrial', 'factory'],
-    RETAIL: ['retail', 'store', 'sales', 'commerce', 'merchandise'],
-    ENGINEERING: ['engineering', 'engineer', 'technical'],
-    MEDIA: [
-      'media',
-      'advertising',
-      'marketing',
-      'communications',
-      'publishing',
-    ],
-    BIOTECHNOLOGY: [
-      'biotech',
-      'biotechnology',
-      'life sciences',
-      'pharmaceutical',
-    ],
-    ENERGY: ['energy', 'oil', 'gas', 'renewable', 'power', 'utilities'],
-    GOVERNMENT: [
-      'government',
-      'federal',
-      'state',
-      'public sector',
-      'municipal',
-    ],
-    ENTERTAINMENT: ['entertainment', 'gaming', 'music', 'film', 'television'],
-    AEROSPACE: ['aerospace', 'aviation', 'defense', 'military'],
-  };
-
-  const jobDescriptionLower = jobDescription.toLowerCase();
-  for (const [industry, keywords] of Object.entries(industryKeywords)) {
-    if (keywords.some((keyword) => jobDescriptionLower.includes(keyword))) {
-      return industry;
-    }
-  }
-
-  return '';
-}
-
 function parseLocationText(locationText) {
   if (!locationText)
     return { city: '', state: '', postalCode: '', country: '' };
@@ -444,22 +351,148 @@ function parseLocationText(locationText) {
   }
 }
 
+function detectIndustry(jobDescription) {
+  const industryKeywords = {
+    HEALTHCARE: [
+      '\\bhealthcare\\b',
+      '\\bmedical\\b',
+      '\\bhospital\\b',
+      '\\bhealth\\b',
+      '\\bHIPAA\\b',
+      '\\bclinical\\b',
+      '\\bpatient\\b',
+    ],
+    TECHNOLOGY: [
+      '\\btechnology\\b',
+      '\\btech\\b',
+      '\\bsoftware\\b',
+      '\\bIT\\b',
+      '\\bcloud\\b',
+      '\\bdigital\\b',
+      '\\bSaaS\\b',
+    ],
+    FINANCE: [
+      '\\bfinance\\b',
+      '\\bfinancial\\b',
+      '\\bbanking\\b',
+      '\\binvestment\\b',
+      '\\baccounting\\b',
+      '\\binsurance\\b',
+    ],
+    CONSULTING: [
+      '\\bconsulting\\b',
+      '\\badvisory\\b',
+      '\\bprofessional services\\b',
+      '\\bconsultancy\\b',
+    ],
+    SOFTWARE: [
+      '\\bsoftware\\b',
+      '\\bdevelopment\\b',
+      '\\bprogramming\\b',
+      '\\bapplication\\b',
+      '\\bplatform\\b',
+    ],
+    TELECOMMUNICATIONS: [
+      '\\btelecommunications\\b',
+      '\\btelecom\\b',
+      '\\bnetwork\\b',
+      '\\bwireless\\b',
+    ],
+    EDUCATION: [
+      '\\beducation\\b',
+      '\\buniversity\\b',
+      '\\bcollege\\b',
+      '\\bacademic\\b',
+      '\\bschool\\b',
+      '\\blearning\\b',
+    ],
+    MANUFACTURING: [
+      '\\bmanufacturing\\b',
+      '\\bproduction\\b',
+      '\\bindustrial\\b',
+      '\\bfactory\\b',
+    ],
+    RETAIL: [
+      '\\bretail\\b',
+      '\\bstore\\b',
+      '\\bsales\\b',
+      '\\bcommerce\\b',
+      '\\bmerchandise\\b',
+    ],
+    ENGINEERING: ['\\bengineering\\b', '\\bengineer\\b', '\\btechnical\\b'],
+    MEDIA: [
+      '\\bmedia\\b',
+      '\\badvertising\\b',
+      '\\bmarketing\\b',
+      '\\bcommunications\\b',
+      '\\bpublishing\\b',
+    ],
+    BIOTECHNOLOGY: [
+      '\\bbiotech\\b',
+      '\\bbiotechnology\\b',
+      '\\blife sciences\\b',
+      '\\bpharmaceutical\\b',
+    ],
+    ENERGY: [
+      '\\benergy\\b',
+      '\\boil\\b',
+      '\\bgas\\b',
+      '\\brenewable\\b',
+      '\\bpower\\b',
+      '\\butilities\\b',
+    ],
+    GOVERNMENT: [
+      '\\bgovernment\\b',
+      '\\bfederal\\b',
+      '\\bstate\\b',
+      '\\bpublic sector\\b',
+      '\\bmunicipal\\b',
+    ],
+    ENTERTAINMENT: [
+      '\\bentertainment\\b',
+      '\\bgaming\\b',
+      '\\bmusic\\b',
+      '\\bfilm\\b',
+      '\\btelevision\\b',
+    ],
+    AEROSPACE: [
+      '\\baerospace\\b',
+      '\\baviation\\b',
+      '\\bdefense\\b',
+      '\\bmilitary\\b',
+    ],
+  };
+
+  const jobDescriptionLower = jobDescription.toLowerCase();
+  for (const [industry, keywords] of Object.entries(industryKeywords)) {
+    for (const keyword of keywords) {
+      const regex = new RegExp(keyword, 'i');
+      if (regex.test(jobDescriptionLower)) {
+        return industry;
+      }
+    }
+  }
+
+  return '';
+}
+
 function detectWorkMode(text) {
   const lowerText = text.toLowerCase();
 
-  if (lowerText.includes('hybrid')) {
+  // Use word boundary markers (\b) to ensure whole word matching
+  if (/\bhybrid\b/i.test(lowerText)) {
     return 'HYBRID';
   } else if (
-    lowerText.includes('remote') ||
-    lowerText.includes('work from home') ||
-    lowerText.includes('wfh')
+    /\bremote\b/i.test(lowerText) ||
+    /\bwork from home\b/i.test(lowerText) ||
+    /\bwfh\b/i.test(lowerText)
   ) {
     return 'REMOTE';
   } else if (
-    lowerText.includes('on-site') ||
-    lowerText.includes('onsite') ||
-    lowerText.includes('in office') ||
-    lowerText.includes('in-office')
+    /\bon-site\b/i.test(lowerText) ||
+    /\bonsite\b/i.test(lowerText) ||
+    /\bin office\b/i.test(lowerText) ||
+    /\bin-office\b/i.test(lowerText)
   ) {
     return 'ONSITE';
   }
@@ -470,21 +503,25 @@ function detectWorkMode(text) {
 function detectWorkType(text) {
   const lowerText = text.toLowerCase();
 
-  if (lowerText.includes('full-time') || lowerText.includes('fulltime')) {
+  // Use word boundary markers (\b) to ensure whole word matching
+  if (/\bfull-time\b/i.test(lowerText) || /\bfulltime\b/i.test(lowerText)) {
     return 'FULL_TIME';
   } else if (
-    lowerText.includes('part-time') ||
-    lowerText.includes('parttime')
+    /\bpart-time\b/i.test(lowerText) ||
+    /\bparttime\b/i.test(lowerText)
   ) {
     return 'PART_TIME';
   } else if (
-    lowerText.includes('contract') ||
-    lowerText.includes('contractor')
+    /\bcontract\b/i.test(lowerText) ||
+    /\bcontractor\b/i.test(lowerText)
   ) {
     return 'CONTRACT';
-  } else if (lowerText.includes('temporary') || lowerText.includes('temp')) {
+  } else if (/\btemporary\b/i.test(lowerText) || /\btemp\b/i.test(lowerText)) {
     return 'TEMPORARY';
-  } else if (lowerText.includes('internship') || lowerText.includes('intern')) {
+  } else if (
+    /\binternship\b/i.test(lowerText) ||
+    /\bintern\b/i.test(lowerText)
+  ) {
     return 'INTERNSHIP';
   }
 
@@ -492,14 +529,14 @@ function detectWorkType(text) {
 }
 
 window.parserUtils = {
-  getTextFromElement,
   cleanText,
-  extractWithRegex,
-  determineCompanySize,
-  parseSalaryInfo,
-  extractCompanyWebsite,
   detectIndustry,
-  parseLocationText,
   detectWorkMode,
   detectWorkType,
+  determineCompanySize,
+  extractCompanyWebsite,
+  extractWithRegex,
+  getTextFromElement,
+  parseLocationText,
+  parseSalaryInfo,
 };

@@ -86,11 +86,12 @@ function getParserForDomain(domain) {
   }
 
   console.info(`No specific parser found for domain: ${normalizedDomain}`);
-  return null;
+  return window.defaultParser ?? null;
 }
 
-async function glassdoorParser(defaultJobDetails) {
-  const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
+async function glassdoorParser(jobDetails) {
+  // TODO: remove the call to the default after implementing this
+  window.defaultParser(jobDetails);
 
   try {
     // TODO: Implement Glassdoor-specific parsing logic
@@ -101,8 +102,9 @@ async function glassdoorParser(defaultJobDetails) {
   }
 }
 
-async function monsterParser(defaultJobDetails) {
-  const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
+async function monsterParser(jobDetails) {
+  // TODO: remove the call to the default after implementing this
+  window.defaultParser(jobDetails);
 
   try {
     // TODO: Implement Monster-specific parsing logic
@@ -113,8 +115,9 @@ async function monsterParser(defaultJobDetails) {
   }
 }
 
-async function zipRecruiterParser(defaultJobDetails) {
-  const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
+async function zipRecruiterParser(jobDetails) {
+  // TODO: remove the call to the default after implementing this
+  window.defaultParser(jobDetails);
 
   try {
     // TODO: Implement ZipRecruiter-specific parsing logic
@@ -125,8 +128,9 @@ async function zipRecruiterParser(defaultJobDetails) {
   }
 }
 
-async function diceParser(defaultJobDetails) {
-  const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
+async function diceParser(jobDetails) {
+  // TODO: remove the call to the default after implementing this
+  window.defaultParser(jobDetails);
 
   try {
     // TODO: Implement Dice-specific parsing logic
@@ -137,8 +141,9 @@ async function diceParser(defaultJobDetails) {
   }
 }
 
-async function wellfoundParser(defaultJobDetails) {
-  const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
+async function wellfoundParser(jobDetails) {
+  // TODO: remove the call to the default after implementing this
+  window.defaultParser(jobDetails);
 
   try {
     // TODO: Implement Wellfound (formerly AngelList)-specific parsing logic
@@ -149,8 +154,9 @@ async function wellfoundParser(defaultJobDetails) {
   }
 }
 
-async function simplyHiredParser(defaultJobDetails) {
-  const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
+async function simplyHiredParser(jobDetails) {
+  // TODO: remove the call to the default after implementing this
+  window.defaultParser(jobDetails);
 
   try {
     // TODO: Implement SimplyHired-specific parsing logic

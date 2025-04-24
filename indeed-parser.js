@@ -1,5 +1,5 @@
 async function indeedParser(defaultJobDetails) {
-  const jobDetails = JSON.parse(JSON.stringify(defaultJobDetails));
+  const jobDetails = defaultJobDetails;
   const domain = window.location.href.toLowerCase();
 
   if (

@@ -424,6 +424,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 target: { tabId: tab.id },
                 files: ['indeed-parser.js'],
               }),
+              chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ['default-parser.js'],
+              }),
             ]);
 
             await chrome.scripting.executeScript({
