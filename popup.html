@@ -188,6 +188,13 @@
             </span>
           </div>
 
+          <label for="jobDescription">Job Description (optional)</label>
+          <textarea
+            id="jobDescription"
+            name="jobDescription"
+            maxlength="65535"
+          ></textarea>
+
           <label for="notes">Notes (optional)</label>
           <textarea id="notes" name="notes" maxlength="65535"></textarea>
           <span id="pay-error-message" style="color: red; display: none"
@@ -403,13 +410,6 @@
 
           <label for="country">Country (optional)</label>
           <input type="text" id="country" name="country" maxlength="255" />
-
-          <label for="jobDescription">Job Description (optional)</label>
-          <textarea
-            id="jobDescription"
-            name="jobDescription"
-            maxlength="65535"
-          ></textarea>
 
           <label for="payFrequency">Pay Frequency (optional)</label>
           <div class="custom-select-wrapper" id="payFrequencyWrapper">
