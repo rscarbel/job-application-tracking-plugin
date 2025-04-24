@@ -72,6 +72,38 @@ async function defaultParser(defaultJobDetails) {
       }
     }
 
+    if (!jobDetails.jobDescription) {
+      const sectionHeaders = document.querySelectorAll('h2, h3');
+      let descriptionText = '';
+
+      for (const header of sectionHeaders) {
+        const headerText = header.textContent.trim().toUpperCase();
+        if (
+          ['DESCRIPTION', 'ABOUT', 'RESPONSIBILITIES', 'OVERVIEW'].includes(
+            headerText
+          )
+        ) {
+          // Get the next sibling elements until we hit another header
+          let currentElement = header.nextElementSibling;
+          while (
+            currentElement &&
+            !['H2', 'H3'].includes(currentElement.tagName)
+          ) {
+            descriptionText += currentElement.textContent.trim() + ' ';
+            currentElement = currentElement.nextElementSibling;
+          }
+
+          if (descriptionText.length > 100) {
+            break;
+          }
+        }
+      }
+
+      if (descriptionText.length > 100) {
+        jobDetails.jobDescription = descriptionText.trim();
+      }
+    }
+
     // Extract company name - look for common containers or metadata
     const possibleCompanyElements = [
       document.querySelector('meta[property="og:site_name"]'),
@@ -326,6 +358,45 @@ async function defaultParser(defaultJobDetails) {
       }
     }
 
+    if (
+      !jobDetails.companyName ||
+      jobDetails.companyName === window.location.hostname
+    ) {
+      // Try to extract company name from job metadata with "Job ID" pattern
+      const metaElements = document.querySelectorAll(
+        '.meta, [class*="meta"], [class*="info"]'
+      );
+      for (const element of metaElements) {
+        const text = element.textContent.trim();
+        // Look for patterns like "Job ID: 12345 | Company Name"
+        const jobIdCompanyPattern = /Job ID:?\s*\d+\s*\|\s*([^|]+)/i;
+        const match = text.match(jobIdCompanyPattern);
+
+        if (match && match[1]) {
+          jobDetails.companyName = match[1].trim();
+          break;
+        }
+      }
+
+      // If company name is still hostname, handle domain-based company names
+      if (
+        !jobDetails.companyName ||
+        jobDetails.companyName === window.location.hostname
+      ) {
+        const domainParts = window.location.hostname.split('.');
+        if (domainParts.length >= 2) {
+          if (
+            ['jobs', 'careers', 'hire', 'work', 'employment'].includes(
+              domainParts[1]
+            )
+          ) {
+            jobDetails.companyName =
+              domainParts[0].charAt(0).toUpperCase() + domainParts[0].slice(1);
+          }
+        }
+      }
+    }
+
     // Extract location information
     const possibleLocationElements = [
       document.querySelector('[class*="location"]'),
@@ -344,6 +415,52 @@ async function defaultParser(defaultJobDetails) {
         const locationData = window.parserUtils.parseLocationText(locationText);
         Object.assign(jobDetails.location, locationData);
         break;
+      }
+    }
+
+    if (
+      !jobDetails.location.city &&
+      !jobDetails.location.state &&
+      !jobDetails.location.country
+    ) {
+      // Look specifically for location elements with icons or in the sidebar
+      const locationElements = document.querySelectorAll(
+        '.location-icon, [aria-label="location"], [class*="sidebar"] [class*="location"]'
+      );
+
+      for (const element of locationElements) {
+        let locationText = '';
+
+        // Check for list items within the element that might contain the actual location
+        const locationItems = element.querySelectorAll('li');
+        if (locationItems.length > 0) {
+          for (const item of locationItems) {
+            const itemText = item.textContent.trim();
+            if (
+              itemText &&
+              itemText.length > 3 &&
+              itemText.length < 100 &&
+              !itemText.toLowerCase().includes('search')
+            ) {
+              locationText = itemText;
+              break;
+            }
+          }
+        } else {
+          locationText = element.textContent.trim();
+        }
+
+        if (
+          locationText &&
+          locationText.length > 3 &&
+          locationText.length < 100 &&
+          !locationText.toLowerCase().includes('search')
+        ) {
+          const locationData =
+            window.parserUtils.parseLocationText(locationText);
+          Object.assign(jobDetails.location, locationData);
+          break;
+        }
       }
     }
 
